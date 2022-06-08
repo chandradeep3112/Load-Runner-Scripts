@@ -1,0 +1,4 @@
+
+netstat -aon | find /i "listening"
+netstat -aon |find /i "listening" |find "8080"
+taskkill /F /PID
