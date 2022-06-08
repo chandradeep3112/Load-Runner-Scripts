@@ -1,0 +1,5 @@
+web service :
+https://www.genuitec.com/forums/topic/generating-a-wsdl-for-rest-web-service/
+
+https://crunchify.com/create-sample-wsdl-in-eclipse-and-generate-client/
+https://www.onlinejspcompiler.com/compileJSP

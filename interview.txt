@@ -1,0 +1,51 @@
+Object x = new Integer(0);
+System.out.println((String)x);
+
+
+
+List list = new ArrayList();
+ArrayList al=new ArrayList();
+
+
+LinkedList 
+
+
+principles of java
+
+
+ It is necessary that each try block must be followed by a catch block.
+ 
+ 
+ 
+ types of references
+ 
+ To implement return type of run method of Runnable interface
+
+CallingInterface
+
+doublechecking
+
+
+package abc;
+
+class parent {
+}
+
+class child extends parent {
+}
+
+public class InheritanceExample {
+public static void main(String[] args) {
+child child = new child();
+parent parent = new parent();
+
+child = (Child)parent;
+}
+}
+
+parent parent = new Child();
+
+
+
+ 
+ 

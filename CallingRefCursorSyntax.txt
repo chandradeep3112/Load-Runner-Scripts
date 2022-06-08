@@ -1,0 +1,2976 @@
+// Decompiled by Jad v1.5.8e2. Copyright 2001 Pavel Kouznetsov.
+// Jad home page: http://kpdus.tripod.com/jad.html
+// Decompiler options: packimports(3) 
+// Source File Name:   OraclePasModuleDAO.java
+
+package com.nucleus.los.dao.application.bde;
+
+import com.nucleus.los.dao.daofactory.DAOCachedRowSet;
+import com.nucleus.los.dao.daofactory.OracleDAOFactory;
+import com.nucleus.los.dto.application.bde.PasModuleDTO;
+import com.nucleus.los.dto.common.PreparedStmtDTO;
+import com.nucleus.los.util.LOSLogger;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import javax.naming.NamingException;
+import java.util.HashMap;
+import oracle.jdbc.driver.OracleTypes;
+import java.sql.Connection;
+import java.sql.CallableStatement;
+import java.sql.ResultSet;
+import com.nucleus.los.util.Format;
+
+// Referenced classes of package com.nucleus.los.dao.application.bde:
+//            PasModuleDAO
+
+public class OraclePasModuleDAO
+    implements PasModuleDAO
+{
+
+    public OraclePasModuleDAO()
+    {
+        logger = new LOSLogger();
+    }
+
+    public DAOCachedRowSet selectPas(PasModuleDTO pasModuleDTO)
+        throws SQLException, NamingException, Exception
+    {
+        logger.debug(" Riiiiiii  In Select Pas DAOCachedRowSet  in oraclepasmodule--------->>>>>");
+        int paramCount = 1;
+        DAOCachedRowSet crs = null;
+        PreparedStmtDTO preparedStmtDTO = null;
+        ArrayList alPreparedStmtDTO = new ArrayList();
+        logger.debug("In Select Pas DAOCachedRowSet --------->>>>>" + pasModuleDTO.getTxtApplicationId());
+        StringBuffer sBuffer = new StringBuffer("select APPLICATION_ID ");
+        sBuffer.append(", APPLICATION_FORM_NO ");
+        sBuffer.append(", PAS_LAS_STATUS ");
+        sBuffer.append(", to_char(STAUTS_DATE_TIME,'dd/mm/yyyy hh24:mi:ss') STAUTS_DATE_TIME ");
+        sBuffer.append(", USER_ID ");
+        sBuffer.append(", Remarks ");
+        sBuffer.append(", Property_Val_Amt ");
+        sBuffer.append(" FROM LOS_PAS_APS_LINK ");
+        sBuffer.append("WHERE APPLICATION_ID = ? ");
+        logger.debug("Querry execute In Select Pas DAOCachedRowSet --------->>>>>");
+        preparedStmtDTO = new PreparedStmtDTO();
+        preparedStmtDTO.setTypeAt(paramCount++);
+        preparedStmtDTO.setType(1);
+        preparedStmtDTO.setStringValue(pasModuleDTO.getTxtApplicationId());
+        alPreparedStmtDTO.add(preparedStmtDTO);
+        try
+        {
+            logger.debug("SelectPas Module DAO in Select query =======" + sBuffer.toString());
+            crs = OracleDAOFactory.executePreparedQuery(sBuffer.toString(), alPreparedStmtDTO);
+            logger.debug("<<<<<<<< crs  in selectPas " + crs);
+        }
+        catch(SQLException se)
+        {
+            se.printStackTrace();
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        return crs;
+    }
+
+    public DAOCachedRowSet selectHeaderAppDet(String applicationID)
+        throws SQLException, NamingException, Exception
+    {
+        logger.debug("875..within OraclePasModuleDAO.selectHeaderAppDet().....");
+        int paramCount = 1;
+        DAOCachedRowSet crs = null;
+        PreparedStmtDTO preparedStmtDTO = null;
+        ArrayList alPreparedStmtDTO = new ArrayList();
+        StringBuffer sBuffer = new StringBuffer("select app.APP_ID_C APP_ID_C, cust.CUSTOMERNAME CUSTNAME ");
+        sBuffer.append(", app.LAA_APP_REQ_AMTFIN_N AMOUNT,prod.DESCRIPTION PRODUCT, sch.SCHEMEDESC SCHEME ");
+        sBuffer.append(", app.LAA_APP_REQ_TERM_N TENURE,lso.LSO_OFFICE_NAME_C BRANCH ");
+        sBuffer.append("\n from LOS_APP_APPLICATIONS app, NBFC_CUSTOMER_M cust, NBFC_PRODUCT_M prod,LEA_SCHEME_M sch, LOS_SEC_OFFICE lso ");
+        sBuffer.append("\n WHERE app.CUST_ID_N=cust.CUST_ID_N AND app.LAA_PRODUCT_ID_C=prod.CODE  ");
+        sBuffer.append("\n AND app.LSM_SCHEMEID=sch.SCHEMEID AND lso.LSO_OFFICE_CODE_C=app.LAA_BRANCHID AND app.APP_ID_C= ? ");
+        preparedStmtDTO = new PreparedStmtDTO();
+        preparedStmtDTO.setTypeAt(paramCount++);
+        preparedStmtDTO.setType(1);
+        preparedStmtDTO.setStringValue(applicationID);
+        alPreparedStmtDTO.add(preparedStmtDTO);
+        try
+        {
+            logger.debug("Query Before Execution in OracleAppDetDAO >>>" + sBuffer.toString());
+            crs = OracleDAOFactory.executePreparedQuery(sBuffer.toString(), alPreparedStmtDTO);
+            logger.debug("<<<<<<<<<<<<<<  crs in selectHeaderAppDet  " + crs);
+        }
+        catch(SQLException se)
+        {
+            se.printStackTrace();
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        return crs;
+    }
+
+    public String getPropertyDetails(PasModuleDTO pasModuleDTO)
+        throws SQLException, NamingException, Exception
+    {
+        ArrayList listOfMessages = new ArrayList();
+        String errMessage = null;
+        int inTypes[] = {
+            12, 12, 12
+        };
+        int outTypes[] = {
+            4, 12
+        };
+        logger.debug("getPropertyDetails - Application Form number : " + pasModuleDTO.getAppFormNo());
+        logger.debug("getPropertyDetails - Application ID : " + pasModuleDTO.getTxtApplicationId());
+        logger.debug("getPropertyDetails - Maker ID : " + pasModuleDTO.getMakerID());
+        Object inValues[] = {
+            pasModuleDTO.getAppFormNo(), pasModuleDTO.getTxtApplicationId(), pasModuleDTO.getMakerID()
+        };
+        try
+        {
+            Object outArray[] = OracleDAOFactory.executeSP("Update_property_dtls", inValues, inTypes, outTypes);
+            errMessage = outArray[1] != null ? outArray[1].toString() : "";
+            logger.debug("sMessage received in DAO : " + errMessage);
+        }
+        catch(SQLException sqlException)
+        {
+            logger.debug("  SQLException " + sqlException);
+            sqlException.printStackTrace();
+            throw sqlException;
+        }
+        catch(NamingException namingException)
+        {
+            logger.debug("  NamingException " + namingException);
+            namingException.printStackTrace();
+            throw namingException;
+        }
+        catch(Exception e)
+        {
+            logger.debug("  EXCEPTION " + e);
+            e.printStackTrace();
+            throw e;
+        }
+        return errMessage;
+    }
+
+    public DAOCachedRowSet selectPropertyDetails(String appFormNo)
+        throws SQLException, NamingException, Exception
+    {
+        int paramCount = 1;
+        DAOCachedRowSet crs = null;
+        PreparedStmtDTO preparedStmtDTO = null;
+        ArrayList alPreparedStmtDTO = new ArrayList();
+        logger.debug("ASK Select query from PAS DB View");
+        StringBuffer sBuffer = new StringBuffer("Select Builder_Company, Wing_Name, Area_for_plot, ");
+        sBuffer.append(" Address_One, Product_Type, Project_Name, Property_Value, Verify_By, State, Nearest_Train_Station, Nearest_Landmark, ");
+        sBuffer.append(" Appraiser_Date1, Appraiser_Date2, Seller_Address_Two, Selling_Price, Approved, Appraisal_Value1, Appraisal_Value2,  ");
+        sBuffer.append(" Built_Up_Area1, Land_Area, Other_Cost, Electricity_Board, Stage_of_Construction1, Built_Up_Area2, APF_ADF_Ref_No, ");
+        sBuffer.append(" Building_ID, Built_Up_Area3, Stage_of_Construction2, Technical_Agency_Name, lpd_valuation1, ");
+        sBuffer.append(" Builder_ID, Property_Type, Recommended_Amount, lpd_valuation2, DOV_by_Technical_Agency, Project_ID ");
+        sBuffer.append(" from APS_PAS_Property_Details");
+        sBuffer.append(" where Application_Form_No = ? ");
+        sBuffer.append(" and Request_Id = (Select max(Request_Id) from APS_PAS_Property_Details where Application_Form_No = ? )");
+        preparedStmtDTO = new PreparedStmtDTO();
+        preparedStmtDTO.setTypeAt(paramCount++);
+        preparedStmtDTO.setType(1);
+        preparedStmtDTO.setStringValue(appFormNo);
+        alPreparedStmtDTO.add(preparedStmtDTO);
+        preparedStmtDTO = new PreparedStmtDTO();
+        preparedStmtDTO.setTypeAt(paramCount++);
+        preparedStmtDTO.setType(1);
+        preparedStmtDTO.setStringValue(appFormNo);
+        alPreparedStmtDTO.add(preparedStmtDTO);
+        try
+        {
+            logger.debug("ASK Query Before Execution: " + sBuffer.toString());
+            crs = OracleDAOFactory.executePreparedQuery(sBuffer.toString(), alPreparedStmtDTO);
+            logger.debug("ASK Query After Execution: ");
+        }
+        catch(SQLException se)
+        {
+            se.printStackTrace();
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        return crs;
+    }
+
+    public int updatePropertyDetails(StringBuffer sBuffer)
+        throws SQLException, NamingException, Exception
+    {
+        int updateProperty = 0;
+        try
+        {
+            logger.debug("ASK Property Details Before Query Execution: " + sBuffer.toString());
+            updateProperty = OracleDAOFactory.executeUpdate(sBuffer.toString());
+            logger.debug("After update Other details: " + updateProperty);
+        }
+        catch(SQLException se)
+        {
+            se.printStackTrace();
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        return updateProperty;
+    }
+
+    public int updateConstructionDetails(StringBuffer sBuffer)
+        throws SQLException, NamingException, Exception
+    {
+        int updateConstruction = 0;
+        try
+        {
+            logger.debug("ASK Construction details Before Query Execution: " + sBuffer.toString());
+            updateConstruction = OracleDAOFactory.executeUpdate(sBuffer.toString());
+            logger.debug("After update Other details: " + updateConstruction);
+        }
+        catch(SQLException se)
+        {
+            se.printStackTrace();
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        return updateConstruction;
+    }
+
+    public int updateOtherDetails(StringBuffer sBuffer)
+        throws SQLException, NamingException, Exception
+    {
+        int updateOther = 0;
+        try
+        {
+            logger.debug("ASK Other details Before Query Execution: " + sBuffer.toString());
+            updateOther = OracleDAOFactory.executeUpdate(sBuffer.toString());
+            logger.debug("After update Other details: " + updateOther);
+        }
+        catch(SQLException se)
+        {
+            se.printStackTrace();
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        return updateOther;
+    }
+
+    public String selectAppFormNo(String appId)
+        throws SQLException, NamingException, Exception
+    {
+        String appFormNo = null;
+        int paramCount = 0;
+        DAOCachedRowSet crs = null;
+        PreparedStmtDTO preparedStmtDTO = null;
+        ArrayList alPreparedStmtDTO = new ArrayList();
+        logger.debug("ASK Changes to get latest Form no. App Id : " + appId);
+        StringBuffer sBuffer = new StringBuffer();
+        sBuffer.append(" Select application_form_no from los_pas_aps_link ");
+        sBuffer.append(" where application_id = ").append(appId);
+        sBuffer.append(" and stauts_date_time = ");
+        sBuffer.append("(");
+        sBuffer.append(" select max(stauts_date_time) from los_pas_aps_link where application_id = ").append(appId);
+        sBuffer.append(" ) ");
+        try
+        {
+            logger.debug(" Query before execution: " + sBuffer.toString());
+            crs = OracleDAOFactory.executeQuery(sBuffer.toString());
+            if(crs.next())
+                appFormNo = crs.getString("application_form_no");
+            logger.debug("ASK Form no: " + appFormNo);
+        }
+        catch(SQLException se)
+        {
+            se.printStackTrace();
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        return appFormNo;
+    }
+
+    public int updatePropertyFlag(String appId)
+        throws SQLException, NamingException, Exception
+    {
+        int update = 0;
+        int crs1 = 0;
+        int crs2 = 0;
+        int crs3 = 0;
+        logger.debug("ASK Reset Flag");
+        StringBuffer sBuffer1 = new StringBuffer(" Update table LEA_PROPERTY_DTL set ");
+        StringBuffer sBuffer2 = new StringBuffer(" Update LEA_CONSTRUCTION_DTL set ");
+        StringBuffer sBuffer3 = new StringBuffer(" Update LEA_PROP_DTL set ");
+        sBuffer1.append(" BUILDER_COMPANY_FLAG= 'N', Wing_Name_FLAG = 'N', ");
+        sBuffer1.append(" Area_for_plot_FLAG = 'N',Address_One_FLAG = 'N',Product_Type_FLAG = 'N',Project_Name_FLAG = 'N', ");
+        sBuffer1.append(" Property_Value_FLAG = 'N',Verify_By_FLAG = 'N',State_FLAG = 'N',Nearest_Train_Station_FLAG = 'N', ");
+        sBuffer1.append(" Nearest_Landmark_FLAG = 'N',Appraiser_Date1_FLAG = 'N',Appraiser_Date2_FLAG = 'N', ");
+        sBuffer1.append(" Seller_Address_Two_FLAG = 'N',Selling_Price_FLAG = 'N',Approved_FLAG = 'N', ");
+        sBuffer1.append(" Appraisal_Value1_FLAG = 'N',Appraisal_Value2_FLAG = 'N' ");
+        sBuffer1.append(" where APP_ID_C = ").append(appId);
+        sBuffer2.append(" Built_Up_Area1_FLAG = 'N',Land_Area_FLAG = 'N', ");
+        sBuffer2.append(" Other_Cost_FLAG = 'N',Electricity_Board_FLAG = 'N', ");
+        sBuffer2.append(" Stage_of_Construction1_FLAG = 'N' ");
+        sBuffer2.append(" where APP_ID_C = ").append(appId);
+        sBuffer3.append(" APF_ADF_Ref_No_FLAG = 'N',Building_ID_FLAG = 'N', ");
+        sBuffer3.append(" Built_Up_Area3_FLAG = 'N',Stage_of_Construction2_FLAG = 'N', ");
+        sBuffer3.append(" Technical_Agency_Name_FLAG = 'N',LPD_VALUATION1_FLAG = 'N', ");
+        sBuffer3.append(" Builder_ID_FLAG = 'N',Property_Type_FLAG = 'N',Recommended_Amount_FLAG = 'N', ");
+        sBuffer3.append(" LPD_VALUATION2_FLAG = 'N',DOV_by_Technical_Agency_FLAG = 'N', ");
+        sBuffer3.append(" Project_ID_FLAG = 'N' ");
+        sBuffer3.append(" where APP_ID_C = ").append(appId);
+        try
+        {
+            logger.debug("Before Query Execution: ");
+            crs1 = OracleDAOFactory.executeUpdate(sBuffer1.toString());
+            logger.debug(" Reset flag of Property table: " + crs1);
+            crs2 = OracleDAOFactory.executeUpdate(sBuffer2.toString());
+            logger.debug(" Reset flag of Construction table: " + crs2);
+            crs3 = OracleDAOFactory.executeUpdate(sBuffer3.toString());
+            logger.debug(" Reset Flag of other table: " + crs3);
+            if(crs1 == 1 && crs2 == 1 && crs3 == 1)
+                update = 1;
+        }
+        catch(SQLException se)
+        {
+            se.printStackTrace();
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        return update;
+    }
+
+    LOSLogger logger;
+    //added by shilpa for LAS Changes start
+    public ArrayList selectLASDetails(String appID) throws SQLException, NamingException, Exception
+    {
+        logger.debug("Inside select LAS Details");
+        PasModuleDTO pasModuleDTO=new PasModuleDTO(); 
+        ArrayList alLawyerDetails=new ArrayList();
+        String requestCode="", apsIdFromLAS="",reportStatus="", statusTitle="",customerName="", birthDate="", pan="", channel="", 
+        projectID="", projectName="", locationID="", productType="", transactionTypeID="", transactionTypeDesc="", bsm="", bcm="", 
+        creditRemarks="", legalRemarks="", clearMarketable="", executive="", reportCreation="", createdOn="", finalTranType=""; 
+        
+        String appFormNo = null;
+        int paramCount = 1;
+        DAOCachedRowSet crs = null;
+        PreparedStmtDTO preparedStmtDTO = null;
+        ArrayList alPreparedStmtDTO = new ArrayList();
+        logger.debug("application ID : " + appID);
+        try {
+            
+            StringBuffer sBuffer = new StringBuffer("SELECT LAA_APP_FORMNO FROM LOS_APP_APPLICATIONS WHERE APP_ID_C=?");
+        
+            preparedStmtDTO = new PreparedStmtDTO();
+            preparedStmtDTO.setTypeAt(paramCount++);
+            preparedStmtDTO.setType(1);
+            preparedStmtDTO.setStringValue(appID);
+            alPreparedStmtDTO.add(preparedStmtDTO);
+            
+            crs = OracleDAOFactory.executePreparedQuery(sBuffer.toString(), alPreparedStmtDTO);
+
+            while(crs.next())
+            {
+                    logger.debug("Inside while loop");
+                    appFormNo=crs.getString("LAA_APP_FORMNO");
+                    logger.debug("Application form no: "+appFormNo);
+            }
+            
+            logger.debug("Application ID: "+appID);
+            logger.debug("Application form no :"+appFormNo);
+            logger.debug("Inside try block");
+            
+            Connection con=OracleDAOFactory.getConnection();
+            logger.debug("Check...1");
+            logger.debug("Connection con: "+con);
+            //CallableStatement stmt = con.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_LAS_REPORT_DETAILS(?, ?, ?); END;");
+            CallableStatement stmt = con.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_LAS_REPORT_DETAILS(?, ?); END;");
+            logger.debug("Check...2");
+            logger.debug("statement object: "+stmt);
+            logger.debug("Application form no: "+appFormNo);
+            stmt.setString(1, appFormNo); 
+            logger.debug("Check..3");
+            logger.debug("Application ID: "+appID);
+            stmt.setString(2, appID);    
+            logger.debug("Check..4");
+            //stmt.registerOutParameter(3, OracleTypes.CURSOR); //REF CURSOR
+            logger.debug("Check..5");
+            stmt.execute();
+            logger.debug("Check..6");
+            
+            ArrayList alLASDetails=new ArrayList();
+            ArrayList alPreparedStmtDTOLasDet = new ArrayList();
+            PreparedStmtDTO objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+            StringBuffer sBufferLASDetails=new StringBuffer();
+            int paramCountLasDet=1;
+            DAOCachedRowSet crsLasDet=null;
+            
+            sBufferLASDetails.append("SELECT REQUEST_ID,LAWYER_NAME, APPLICATION_NO, ADDRESS1, ADDRESS2, ADDRESS3, ");
+            sBufferLASDetails.append("LAWYER_ID, REQUEST_CODE, APS_ID, REPORT_STATUS, STATUS_TITLE, CUSTOMER_NAME, BIRTH_DATE,");
+            sBufferLASDetails.append("PAN, CHANNEL, PROJECT_ID, Project_Name, Location_Id, PRODUCT_TYPE, TRANSACTION_TYPE_ID, ");
+            sBufferLASDetails.append("TRANSACTION_TYPE_DESC, BSM, BCM, CREDIT_REMARKS, LEGAL_REMARKS, CLEAR_MARKETABLE, ");
+            sBufferLASDetails.append("EXECUTIVE, REPORT_CREATION, CREATED_ON, FINAL_TRANS_TYPE ");                 
+            sBufferLASDetails.append(" FROM ATL_APS_LAS_REPORT_DETAILS WHERE APS_ID=?");
+            
+            
+            objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+            objPreparedStmtDTOLasDet.setTypeAt(paramCountLasDet++);
+    		objPreparedStmtDTOLasDet.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+    		objPreparedStmtDTOLasDet.setStringValue(appID);
+    		alPreparedStmtDTOLasDet.add(objPreparedStmtDTOLasDet);
+            objPreparedStmtDTOLasDet=null;
+            
+            
+            crsLasDet = OracleDAOFactory.executePreparedQuery(sBufferLASDetails.toString(),alPreparedStmtDTOLasDet);
+            
+            ArrayList alPreparedStmtDTOLasDelete = new ArrayList();
+            PreparedStmtDTO objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+            StringBuffer sBufferLASDelete=new StringBuffer();
+            int paramCountLasDelete=1;
+            DAOCachedRowSet crsLasDelete=null;
+            
+            
+            
+            sBufferLASDelete.append("DELETE FROM ATL_APS_LAS_REPORT_DETAILS WHERE APS_ID=?");
+            
+            objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+            objPreparedStmtDTOLasDelete.setTypeAt(paramCountLasDelete++);
+    		objPreparedStmtDTOLasDelete.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+    		objPreparedStmtDTOLasDelete.setStringValue(appID);
+    		alPreparedStmtDTOLasDelete.add(objPreparedStmtDTOLasDelete);
+            objPreparedStmtDTOLasDet=null;
+            
+            //ResultSet rs = (ResultSet)stmt.getObject (3);
+            
+            logger.debug("After fetching data from result set");
+            //logger.debug("Result set object: "+rs);
+            //logger.debug("Whether data exist: "+rs.next());
+            
+            while (crsLasDet.next()) 
+            {
+                logger.debug("Inside while loop");
+                pasModuleDTO=new PasModuleDTO(); 
+                logger.debug("After creating pas module dto object");
+                pasModuleDTO.setRequestID(crsLasDet.getString("REQUEST_ID"));
+                logger.debug("Request ID");
+                logger.debug("Request ID value: "+pasModuleDTO.getRequestID());
+                pasModuleDTO.setTxtLawyerName(crsLasDet.getString("LAWYER_NAME"));
+                logger.debug("Lawyer name");
+                logger.debug("Lawyer name value: "+pasModuleDTO.getTxtLawyerName());
+                pasModuleDTO.setTxtAppLASFormNo(crsLasDet.getString("APPLICATION_NO"));
+                logger.debug("App LAS form no");
+                logger.debug("LAS form no: "+pasModuleDTO.getTxtAppLASFormNo());
+                pasModuleDTO.setTxtPropertyAddress1(crsLasDet.getString("ADDRESS1"));
+                logger.debug("Prop address 1");
+                logger.debug("Prop address 1 value: "+pasModuleDTO.getTxtPropertyAddress1());
+                pasModuleDTO.setTxtPropertyAddress2(crsLasDet.getString("ADDRESS2"));
+                logger.debug("Prop address 2");
+                logger.debug("Prop address 2 value: "+pasModuleDTO.getTxtPropertyAddress2());
+                pasModuleDTO.setTxtPropertyAddress3(crsLasDet.getString("ADDRESS3"));
+                logger.debug("Prop address 3");
+                logger.debug("Prop address 3 value: "+pasModuleDTO.getTxtPropertyAddress3());
+                pasModuleDTO.setTxtLawyerID(crsLasDet.getString("LAWYER_ID"));
+                logger.debug("Lawyer ID");
+                logger.debug("Lawyer ID value: "+pasModuleDTO.getTxtLawyerID());
+                requestCode=crsLasDet.getString("REQUEST_CODE");
+                logger.debug("Request code");
+                logger.debug("Request code value: "+requestCode);
+                apsIdFromLAS=crsLasDet.getString("APS_ID");
+                logger.debug("app id from lms");
+                logger.debug("apsIdFromLAS: "+apsIdFromLAS);
+                reportStatus=crsLasDet.getString("REPORT_STATUS");
+                logger.debug("Check..1");
+                statusTitle=crsLasDet.getString("STATUS_TITLE");
+                logger.debug("Check..2");
+                customerName=crsLasDet.getString("CUSTOMER_NAME");
+                logger.debug("Check..3");
+                birthDate=crsLasDet.getString("BIRTH_DATE");
+                logger.debug("Check..4");
+                pan=crsLasDet.getString("PAN");
+                logger.debug("Check..5");
+                channel=crsLasDet.getString("CHANNEL");
+                logger.debug("Check..6");
+                projectID=crsLasDet.getString("PROJECT_ID");
+                logger.debug("Check..7");
+                projectName=crsLasDet.getString("Project_Name");
+                logger.debug("Check..8");
+                locationID=crsLasDet.getString("Location_Id");
+                logger.debug("Check..9");
+                productType=crsLasDet.getString("PRODUCT_TYPE");
+                logger.debug("Check..10");
+                transactionTypeID=crsLasDet.getString("TRANSACTION_TYPE_ID");
+                logger.debug("Check..11");
+                transactionTypeDesc=crsLasDet.getString("TRANSACTION_TYPE_DESC");
+                logger.debug("Check..12");
+                bsm=crsLasDet.getString("BSM");
+                logger.debug("Check..13");
+                bcm=crsLasDet.getString("BCM");
+                logger.debug("Check..14");
+                creditRemarks=crsLasDet.getString("CREDIT_REMARKS");
+                logger.debug("Check..15");
+                legalRemarks=crsLasDet.getString("LEGAL_REMARKS");
+                logger.debug("Check..16");
+                clearMarketable=crsLasDet.getString("CLEAR_MARKETABLE");
+                logger.debug("Check..17");
+                executive=crsLasDet.getString("EXECUTIVE");
+                logger.debug("Check..18");
+                reportCreation=crsLasDet.getString("REPORT_CREATION");
+                logger.debug("Check..19");
+                createdOn=crsLasDet.getString("CREATED_ON");
+                logger.debug("Check..20");
+                finalTranType=crsLasDet.getString("FINAL_TRANS_TYPE");
+                logger.debug("Check..21");
+                
+                logger.debug("Request ID in oracle pas module dao: "+pasModuleDTO.getRequestID());
+                logger.debug("Lawyer ID in oracle pas module dao: "+pasModuleDTO.getTxtLawyerID());
+                logger.debug("Lawyer name in oracle pas module dao: "+pasModuleDTO.getTxtLawyerName());
+                logger.debug("Application form number in oracle pas module dao: "+pasModuleDTO.getTxtAppLASFormNo());
+                logger.debug("Property address 1 in oracle pas module dao: "+pasModuleDTO.getTxtPropertyAddress1());
+                logger.debug("Properrty address 2 in oracle pas module dao: "+pasModuleDTO.getTxtPropertyAddress2());
+                logger.debug("Property address 3 in oracle pas module dao: "+pasModuleDTO.getTxtPropertyAddress3());
+                alLawyerDetails.add(pasModuleDTO);
+                logger.debug("Array list value of lawyer details in oracle pas module dao: "+alLawyerDetails);
+            }
+            
+            int lasDelete = OracleDAOFactory.executePreparedUpdate(sBufferLASDelete.toString(),alPreparedStmtDTOLasDelete);
+            logger.debug("Las delete check...1: "+lasDelete);
+            
+            
+            //stmt.close();
+
+        } catch (SQLException e) {
+            logger.debug("Inside sql exception of selectLASDetails : "+e);
+            e.printStackTrace();
+        }
+        catch(Exception e)
+        {
+            logger.debug("Inside exception: "+e);
+            e.printStackTrace();
+                
+        }
+        logger.debug("Array list before returning in oracle pas module dao:  "+alLawyerDetails);
+        return alLawyerDetails;
+    }
+    public int updateLawyerDocDetails (String lawyerRequestID, String appID) throws SQLException, NamingException, Exception
+    {
+         logger.debug("Inside updateLawyerDocDetails of oracle pas module dao");
+         String appNoFromLAS="", apsIDFromLAS="", requestCode="", requestIDFromLAS="", createdByName="",statusDesc=""; 
+         int recordUpdatedDetails = 0;
+         int recordUpdatedDelete = 0;
+         
+         PreparedStmtDTO preparedStmtDTO = null;
+         ArrayList alPreparedStmtDTO = new ArrayList();
+         DAOCachedRowSet crs = null;
+         String appFormNo = "";
+         int paramCount = 1;
+         try
+         {
+                logger.debug("Inside try block");
+                StringBuffer sBuffer = new StringBuffer("SELECT LAA_APP_FORMNO FROM LOS_APP_APPLICATIONS WHERE APP_ID_C=?");
+        
+                preparedStmtDTO = new PreparedStmtDTO();
+                preparedStmtDTO.setTypeAt(paramCount++);
+                preparedStmtDTO.setType(1);
+                preparedStmtDTO.setStringValue(appID);
+                alPreparedStmtDTO.add(preparedStmtDTO);
+                
+                crs = OracleDAOFactory.executePreparedQuery(sBuffer.toString(), alPreparedStmtDTO);
+                
+                while(crs.next())
+                {
+                        logger.debug("Inside while loop");
+                        appFormNo=crs.getString("LAA_APP_FORMNO");
+                        logger.debug("Application form no: "+appFormNo);
+                }
+                
+                ArrayList alLawyerDetails=new ArrayList();
+                PasModuleDTO pasModuleDTO=new PasModuleDTO();
+                
+                Connection con=OracleDAOFactory.getConnection();
+                //CallableStatement stmt = con.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_LAS_DOCUMENT_DETAILS(?, ?, ?); END;");
+                CallableStatement stmt = con.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_LAS_DOCUMENT_DETAILS(?, ?); END;");
+                stmt.setString(1, appFormNo); 
+                stmt.setString(2, appID);
+                //stmt.registerOutParameter(3, OracleTypes.CURSOR); //REF CURSOR
+                stmt.execute();
+                //ResultSet rs = (ResultSet)stmt.getObject (3);
+                logger.debug("Before while loop");
+                
+                ArrayList alLASDetails=new ArrayList();
+                ArrayList alPreparedStmtDTOLasDet = new ArrayList();
+                PreparedStmtDTO objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+                StringBuffer sBufferLASDetails=new StringBuffer();
+                int paramCountLasDet=1;
+                DAOCachedRowSet crsLasDet=null;
+                
+                sBufferLASDetails.append("SELECT REQUEST_ID,APPLICATION_NO,APS_ID, REQUEST_CODE, REQUEST_ID, DOCUMENT_ID, DOCUMENT_NAME, ");
+                sBufferLASDetails.append("DOCUMENT_NO, Issuance_Date, REMARKS, CREATED_BY, CREATED_BY_NAME, STATUS_CODE,");
+                sBufferLASDetails.append("STATUS_DESC, REQUIRED_TYPE, LEGAL_REMARK ");                 
+                sBufferLASDetails.append(" FROM ATL_APS_LAS_DOCUMENT_DETAILS WHERE APS_ID=?");
+                
+                
+                objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+                objPreparedStmtDTOLasDet.setTypeAt(paramCountLasDet++);
+        		objPreparedStmtDTOLasDet.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+        		objPreparedStmtDTOLasDet.setStringValue(appID);
+        		alPreparedStmtDTOLasDet.add(objPreparedStmtDTOLasDet);
+                objPreparedStmtDTOLasDet=null;
+                
+                crsLasDet = OracleDAOFactory.executePreparedQuery(sBufferLASDetails.toString(),alPreparedStmtDTOLasDet);
+                
+                ArrayList alPreparedStmtDTOLasDelete = new ArrayList();
+                PreparedStmtDTO objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+                StringBuffer sBufferLASDelete=new StringBuffer();
+                int paramCountLasDelete=1;
+                DAOCachedRowSet crsLasDelete=null;
+                
+                sBufferLASDelete.append("DELETE FROM ATL_APS_LAS_DOCUMENT_DETAILS WHERE APS_ID=?");
+                
+                objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+                objPreparedStmtDTOLasDelete.setTypeAt(paramCountLasDelete++);
+        		objPreparedStmtDTOLasDelete.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+        		objPreparedStmtDTOLasDelete.setStringValue(appID);
+        		alPreparedStmtDTOLasDelete.add(objPreparedStmtDTOLasDelete);
+                objPreparedStmtDTOLasDet=null;
+
+               while (crsLasDet.next()) 
+                {
+                    logger.debug("Before while loop");
+                    if(lawyerRequestID.equalsIgnoreCase(crsLasDet.getString("REQUEST_ID")))
+                    {
+                        pasModuleDTO=new PasModuleDTO();
+                        logger.debug("Request ID matches");                        
+                        appNoFromLAS=crsLasDet.getString("APPLICATION_NO");
+                        logger.debug("Application Number: "+appNoFromLAS);
+                        apsIDFromLAS=crsLasDet.getString("APS_ID");
+                        requestCode=crsLasDet.getString("REQUEST_CODE");
+                        requestIDFromLAS=crsLasDet.getString("REQUEST_ID");
+                        logger.debug("requestIDFromLAS value: "+requestIDFromLAS);
+                        pasModuleDTO.setLawyerDocID(crsLasDet.getInt("DOCUMENT_ID"));
+                        logger.debug("Lawyer doc id: "+pasModuleDTO.getLawyerDocID());
+                        pasModuleDTO.setLawyerDocName(crsLasDet.getString("DOCUMENT_NAME"));
+                        logger.debug("Lawyer doc name: "+pasModuleDTO.getLawyerDocName());
+                        pasModuleDTO.setLawyerDocNo(crsLasDet.getString("DOCUMENT_NO"));
+                        logger.debug("Lawyer doc no: "+pasModuleDTO.getLawyerDocNo());
+                        pasModuleDTO.setLawyerIssueDate(crsLasDet.getString("Issuance_Date"));
+                        logger.debug("Lawyer issue date: "+pasModuleDTO.getLawyerIssueDate());
+                        pasModuleDTO.setLawyerRemarks(crsLasDet.getString("REMARKS"));
+                        logger.debug("Lawyer remarls: "+pasModuleDTO.getLawyerRemarks());
+                        pasModuleDTO.setLawyerCreatedBy(crsLasDet.getString("CREATED_BY"));
+                        logger.debug("Lawyer created by: "+pasModuleDTO.getLawyerCreatedBy());
+                        createdByName=crsLasDet.getString("CREATED_BY_NAME");
+                        //pasModuleDTO.setLawyerCreatedOn(Format.getStringFromUtil(rs.getDate("CREATED_ON")));
+                        //logger.debug("Lawyer created on: "+pasModuleDTO.getLawyerCreatedOn());
+                        pasModuleDTO.setLawyerStatusCode(crsLasDet.getString("STATUS_CODE"));
+                        logger.debug("Lawyer status code: "+pasModuleDTO.getLawyerStatusCode());
+                        statusDesc=crsLasDet.getString("STATUS_DESC");
+                        pasModuleDTO.setLawyerDocType(crsLasDet.getString("REQUIRED_TYPE"));
+                        logger.debug("Required type: "+pasModuleDTO.getLawyerDocType());
+                        pasModuleDTO.setLawyerLegalRemarks(crsLasDet.getString("LEGAL_REMARK"));
+                        logger.debug("Legal remarks: "+pasModuleDTO.getLawyerLegalRemarks());
+                        alLawyerDetails.add(pasModuleDTO);
+                    }
+                }
+                
+                int lasDelete = OracleDAOFactory.executePreparedUpdate(sBufferLASDelete.toString(),alPreparedStmtDTOLasDelete);
+                logger.debug("Las delete check..2L: "+lasDelete);
+                
+                logger.debug("Request ID: "+lawyerRequestID);
+                logger.debug("Lawyer doc detail array list value: "+alLawyerDetails);
+                logger.debug("Size of array list: "+alLawyerDetails.size());
+                
+                ArrayList alPreparedStmtDTODetails = new ArrayList();
+                PreparedStmtDTO objPreparedStmtDTODetails = null;
+                int paramCountDetails = 1;
+
+                if(alLawyerDetails.size()!=0)
+                {
+                    ArrayList alPreparedStmtDTODelete = new ArrayList();
+                    PreparedStmtDTO objPreparedStmtDTODelete = null;
+                    int paramCountDelete = 1;
+                    StringBuffer sBufferDelete = new StringBuffer("DELETE FROM LAS_DOCUCMENT_DETAILS WHERE APP_ID_C=?");
+
+                    objPreparedStmtDTODelete = new PreparedStmtDTO();
+                    objPreparedStmtDTODelete.setTypeAt(paramCountDelete++);
+                    objPreparedStmtDTODelete.setType(1);
+                    objPreparedStmtDTODelete.setStringValue(apsIDFromLAS);
+                    alPreparedStmtDTODelete.add(objPreparedStmtDTODelete);
+                    
+                    recordUpdatedDelete = OracleDAOFactory.executePreparedUpdate(sBufferDelete.toString(), alPreparedStmtDTODelete);
+                    
+                    for (int i=0;i<alLawyerDetails.size();i++)
+                    {
+                        PasModuleDTO pasLawyerDocDetails=(PasModuleDTO)alLawyerDetails.get(i);
+                        
+                        logger.debug("Lawyer details array list value in for loop: "+alLawyerDetails.get(i));
+                        
+                        logger.debug("APS ID from LAS: "+apsIDFromLAS);
+                        logger.debug("Application form no from LAS: "+appNoFromLAS);
+                        logger.debug("Lawyer doc id: "+pasLawyerDocDetails.getLawyerDocID());
+                        logger.debug("Lawyer request id fom LAS: "+requestIDFromLAS);
+                        logger.debug("Lawyer status code : "+pasLawyerDocDetails.getLawyerStatusCode());
+                        logger.debug("Lawyer doc no: "+pasLawyerDocDetails.getLawyerDocNo());
+                        logger.debug("Lawyer doc name:  "+pasLawyerDocDetails.getLawyerDocName());
+                        logger.debug("Lawyer doc type: "+pasLawyerDocDetails.getLawyerDocType());
+                        logger.debug("lawyer issue dateL "+pasLawyerDocDetails.getLawyerIssueDate());
+                        logger.debug("Lawyer legal remarks: "+pasLawyerDocDetails.getLawyerLegalRemarks());
+                        
+                        
+                        StringBuffer sBufferDetails = new StringBuffer("INSERT INTO LAS_DOCUCMENT_DETAILS (APP_ID_C, LDD_APPLICATION_NO, "+
+                        "LDD_DOCUMENT_ID, LDD_REQUEST_ID, LDD_STATUS, LDD_DOCUMENT_NAME, LDD_DOCUMENT_NO, LDD_EXECUTION_DATE, "+
+                        "LDD_REMARKS, LDD_REQUIRED_TYPE, LDD_CREATED_ON, LDD_CREATED_BY, LDD_LEGAL_REMARK ) VALUES(");
+                        
+                        sBufferDetails.append(" ? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(apsIDFromLAS);
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(appNoFromLAS);
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                        objPreparedStmtDTODetails.setIntValue(pasLawyerDocDetails.getLawyerDocID());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(requestIDFromLAS);
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(pasLawyerDocDetails.getLawyerStatusCode());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(pasLawyerDocDetails.getLawyerDocName());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(pasLawyerDocDetails.getLawyerDocNo());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(pasLawyerDocDetails.getLawyerIssueDate());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(pasLawyerDocDetails.getLawyerRemarks());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(pasLawyerDocDetails.getLawyerDocType());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(pasLawyerDocDetails.getLawyerCreatedOn());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(pasLawyerDocDetails.getLawyerCreatedBy());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(" ,? ");
+                        objPreparedStmtDTODetails = new PreparedStmtDTO();
+                        objPreparedStmtDTODetails.setTypeAt(paramCountDetails++);
+                        objPreparedStmtDTODetails.setType(1);
+                        objPreparedStmtDTODetails.setStringValue(pasLawyerDocDetails.getLawyerLegalRemarks());
+                        alPreparedStmtDTODetails.add(objPreparedStmtDTODetails);
+                        
+                        sBufferDetails.append(")");
+                        recordUpdatedDetails = OracleDAOFactory.executePreparedUpdate(sBufferDetails.toString(), alPreparedStmtDTODetails);
+                    }
+                }
+                logger.debug("delete value : "+recordUpdatedDelete);
+                logger.debug("Insert value:  "+recordUpdatedDetails);
+                
+            } catch(SQLException se)
+        {
+            se.printStackTrace();
+            logger.debug("Inside sql exception: "+se);
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            logger.debug("Naming exception: "+se);
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            logger.debug("general exception: "+se);
+            throw new SQLException();
+        }
+         return recordUpdatedDetails;   
+    }
+    public int selectRequestID(String appID) throws SQLException, NamingException, Exception
+    {
+        PreparedStmtDTO preparedStmtDTO = null;
+        ArrayList alPreparedStmtDTO = new ArrayList();
+        DAOCachedRowSet crs = null;
+        PasModuleDTO pasModuleDTO=new PasModuleDTO();
+        int requestID=0;
+        
+        int paramCount = 1;
+        try
+        {
+                logger.debug("Inside try block");
+                StringBuffer sBuffer = new StringBuffer("SELECT LDD_REQUEST_ID FROM LAS_DOCUCMENT_DETAILS WHERE APP_ID_C=?");
+        
+                preparedStmtDTO = new PreparedStmtDTO();
+                preparedStmtDTO.setTypeAt(paramCount++);
+                preparedStmtDTO.setType(1);
+                preparedStmtDTO.setStringValue(appID);
+                alPreparedStmtDTO.add(preparedStmtDTO);
+                
+                crs = OracleDAOFactory.executePreparedQuery(sBuffer.toString(), alPreparedStmtDTO);
+                
+                while(crs.next())
+                {
+                        logger.debug("Inside while loop");
+                        requestID=crs.getInt("LDD_REQUEST_ID");
+                }
+         }
+         catch(SQLException se)
+        {
+            se.printStackTrace();
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            throw new SQLException();
+        }
+        return requestID;        
+    }
+    //added by shilpa for LAS Changes end
+   //added by shilpa for PAS start
+    public HashMap selectPASDetails(String appID) throws SQLException, NamingException, Exception
+    {
+        logger.debug("Inside selectPASDetails method of oracle pas module dao");
+        PasModuleDTO pasModuleDTO=new PasModuleDTO(); 
+        ArrayList alPASDetails=new ArrayList();
+        
+        String appFormNo="", propertyAddr1="",propertyAddr2="", propertyAddr3="" ; 
+        
+        int paramCount = 1;
+        DAOCachedRowSet crs = null;
+        PreparedStmtDTO preparedStmtDTO = null;
+        ArrayList alPreparedStmtDTO = new ArrayList();
+        logger.debug("application ID : " + appID);
+        HashMap hashPasDetails=new HashMap();
+        try {
+            
+            /*int paramCountPrio = 1;
+            DAOCachedRowSet crsPrio = null;
+            PreparedStmtDTO preparedStmtDTOPrio = null;
+            ArrayList alPreparedStmtDTOPrio = new ArrayList();
+            ArrayList alPriority=new ArrayList();
+            
+            StringBuffer sBufferPrio = new StringBuffer("SELECT PDD_PRIORITY FROM pas_docucment_details WHERE APP_ID_C=?");
+        
+            preparedStmtDTOPrio = new PreparedStmtDTO();
+            preparedStmtDTOPrio.setTypeAt(paramCountPrio++);
+            preparedStmtDTOPrio.setType(1);
+            preparedStmtDTOPrio.setStringValue(appID);
+            alPreparedStmtDTOPrio.add(preparedStmtDTOPrio);
+            
+            PasModuleDTO pasPrioDTO=null;
+            crsPrio = OracleDAOFactory.executePreparedQuery(sBufferPrio.toString(), alPreparedStmtDTOPrio);
+            while(crsPrio.next())
+            {
+                 pasPrioDTO=new PasModuleDTO();
+                 pasPrioDTO.setTxtPriority(crsPrio.getString("PDD_PRIORITY"));
+                 alPriority.add(pasPrioDTO);
+            }
+            logger.debug("Prio array list size: "+alPriority.size());*/
+            
+            
+            StringBuffer sBuffer = new StringBuffer("SELECT LAA_APP_FORMNO FROM LOS_APP_APPLICATIONS WHERE APP_ID_C=?");
+        
+            preparedStmtDTO = new PreparedStmtDTO();
+            preparedStmtDTO.setTypeAt(paramCount++);
+            preparedStmtDTO.setType(1);
+            preparedStmtDTO.setStringValue(appID);
+            alPreparedStmtDTO.add(preparedStmtDTO);
+            
+            crs = OracleDAOFactory.executePreparedQuery(sBuffer.toString(), alPreparedStmtDTO);
+
+            while(crs.next())
+            {
+                    logger.debug("Inside while loop");
+                    appFormNo=crs.getString("LAA_APP_FORMNO");
+                    logger.debug("Application form no: "+appFormNo);
+            }
+            //ArrayList alPasValuationDet=selectPasValuationDetails(appFormNo);
+            //String appFormNoVal="", lasPasStatus="",statusDateTime="",userId="",remarks="",channelId="",propertyValValue="",pasValReqId="";
+            //PasModuleDTO pasMod1=new PasModuleDTO(); 
+            //ArrayList alPasValDetails=new ArrayList();
+            /*for (int i=0;i<alPasValuationDet.size();i++)
+            {
+                logger.debug("inside for loop");
+                PasModuleDTO pasMod=(PasModuleDTO)alPasValuationDet.get(i);
+                logger.debug("Pas val req: "+pasMod.getPasValReq());
+                if(!("".equalsIgnoreCase(pasMod.getPasValReq()) || pasMod.getPasValReq()==null))
+                {
+                    logger.debug("here...");
+                    pasMod1=new PasModuleDTO();
+                    appFormNoVal=pasMod.getAppFormNo();
+                    lasPasStatus=pasMod.getPasLasStatus();
+                    statusDateTime=pasMod.getStatusDateTime();
+                    //channelId=pasMod.getChannelID();
+                    propertyValValue=pasMod.getPropertyValuationAmount();
+                    pasValReqId=pasMod.getPasValReq();
+                    
+                    pasMod1.setAppFormNo(pasMod.getAppFormNo());
+                    pasMod1.setPasLasStatus(pasMod.getPasLasStatus());
+                    pasMod1.setStatusDateTime(pasMod.getStatusDateTime());
+                    pasMod1.setUserId(pasMod.getUserId());
+                    logger.debug("User ID: "+pasMod.getUserId());
+                    pasMod1.setRemarks("UAT remarks");
+                    //pasMod1.setChannelID(pasMod.getChannelID());
+                    pasMod1.setPropertyValuationAmount(pasMod.getPropertyValuationAmount());
+                    pasMod1.setPasValReq(pasMod.getPasValReq());
+                    alPasValDetails.add(pasMod1);
+                }
+            }*/
+            /*logger.debug("alPasValDetails size: "+alPasValDetails.size());
+            if(alPasValDetails.size()!=0)
+                hashPasDetails.put("PAS_VALUATION_DATA",alPasValDetails);
+            logger.debug("application number-->>"+appFormNoVal);
+            logger.debug("lasPasStatus--->>"+lasPasStatus);
+            logger.debug("statusDateTime-->>"+statusDateTime);
+            logger.debug("channelId--->>"+channelId);
+            logger.debug("propertyValValue-->>"+propertyValValue);
+            logger.debug("pasValReqId-->>"+pasValReqId);
+            */
+            logger.debug("Application ID: "+appID);
+            
+            Connection con=OracleDAOFactory.getConnection();
+            //CallableStatement stmt = con.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_PAS_PROPERT_DETAILS(?, ?); END;");
+            CallableStatement stmt = con.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_PAS_PROPERT_DETAILS(?); END;");
+            stmt.setString(1, appFormNo); 
+            //stmt.registerOutParameter(2, OracleTypes.CURSOR); //REF CURSOR
+            stmt.execute();
+            
+            //ResultSet rs = (ResultSet)stmt.getObject (2);
+            
+            ArrayList alLASDetails=new ArrayList();
+            ArrayList alPreparedStmtDTOLasDet = new ArrayList();
+            PreparedStmtDTO objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+            StringBuffer sBufferLASDetails=new StringBuffer();
+            int paramCountLasDet=1;
+            DAOCachedRowSet crsLasDet=null;
+            
+            sBufferLASDetails.append("SELECT REQUEST_TYPE,APPLICATION_NO, REQUEST_ID, REQUEST_DATE, BUILDER_COMPANY, ");
+            sBufferLASDetails.append("BUILDING_NAME, AREA_OF_LAND,ADDRESS_LINE1, PRODUCT_TYPE, PROPERTY_TYPE, PROJECT_NAME,");
+            sBufferLASDetails.append("Property_Value, STATE_NAME, NEAREST_RAIL_STATION, Landmark, ADDRESS_LINE2, TOTAL_VALUE, ");
+            sBufferLASDetails.append("Status, APPRAISAL_VALUE2, SELLEBLE_AREA, OTHER_CHARGES, ELECTRICITY_CHARGES, PER_COMPLETED, ");
+            sBufferLASDetails.append("PER_RECOMMENDED, PROJECT_APPROVAL_NO, BUILDING_ID, VISITED_BY_NAME, VALUATION_FROM_RPT1, ");
+            sBufferLASDetails.append("BUILDER_ID, VALUATION_FROM_RPT2, VISITED_DATE, PROJECT_CODE, ADDRESS_LINE3 ");
+            sBufferLASDetails.append(" FROM ATL_APS_PAS_PROPERT_DETAILS WHERE APPLICATION_NO=?");
+            
+            
+            objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+            objPreparedStmtDTOLasDet.setTypeAt(paramCountLasDet++);
+    		objPreparedStmtDTOLasDet.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+    		objPreparedStmtDTOLasDet.setStringValue(appFormNo);
+    		alPreparedStmtDTOLasDet.add(objPreparedStmtDTOLasDet);
+            objPreparedStmtDTOLasDet=null;
+            
+            crsLasDet = OracleDAOFactory.executePreparedQuery(sBufferLASDetails.toString(),alPreparedStmtDTOLasDet);
+            
+            
+            
+            ArrayList alPreparedStmtDTOLasDelete = new ArrayList();
+            PreparedStmtDTO objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+            StringBuffer sBufferLASDelete=new StringBuffer();
+            int paramCountLasDelete=1;
+            DAOCachedRowSet crsLasDelete=null;
+
+            sBufferLASDelete.append("DELETE FROM ATL_APS_PAS_PROPERT_DETAILS WHERE APPLICATION_NO=?");
+
+            objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+            objPreparedStmtDTOLasDelete.setTypeAt(paramCountLasDelete++);
+            objPreparedStmtDTOLasDelete.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+            objPreparedStmtDTOLasDelete.setStringValue(appFormNo);
+            alPreparedStmtDTOLasDelete.add(objPreparedStmtDTOLasDelete);
+            objPreparedStmtDTOLasDet=null;            
+            
+           
+            
+            logger.debug("After fetching data from result set");
+            logger.debug("rs value: "+crsLasDet);
+            while (crsLasDet.next()) 
+            {
+                logger.debug("Inside while loop");
+                pasModuleDTO=new PasModuleDTO();
+                String requestType=crsLasDet.getString("REQUEST_TYPE");
+                logger.debug("requestType value: "+requestType);
+                String appNo=crsLasDet.getString("APPLICATION_NO");
+                pasModuleDTO.setHidPasRequestId(crsLasDet.getString("REQUEST_ID"));
+                logger.debug("Request ID in dao: "+pasModuleDTO.getHidPasRequestId());
+                String createdateTime=crsLasDet.getString("REQUEST_DATE");
+                String builderCompany=crsLasDet.getString("BUILDER_COMPANY");
+                String buildingName=crsLasDet.getString("BUILDING_NAME");
+                pasModuleDTO.setTxtBuildUpArea(crsLasDet.getInt("AREA_OF_LAND"));
+                propertyAddr1=crsLasDet.getString("ADDRESS_LINE1");
+                String prodType=crsLasDet.getString("PRODUCT_TYPE");
+                String propertyId=crsLasDet.getString("PROPERTY_TYPE");
+                logger.debug("propertyId in dhsjdsjs:  "+propertyId);
+                String projectName=crsLasDet.getString("PROJECT_NAME");
+                String propertyValue=crsLasDet.getString("Property_Value");
+                int stateName=crsLasDet.getInt("STATE_NAME");
+                String nearestRailwayStation=crsLasDet.getString("NEAREST_RAIL_STATION");
+                String landmark=crsLasDet.getString("Landmark");
+                propertyAddr2=crsLasDet.getString("ADDRESS_LINE2");
+                String totalValue=crsLasDet.getString("TOTAL_VALUE");
+                String status=crsLasDet.getString("Status");
+                int appraisedRate=crsLasDet.getInt("APPRAISAL_VALUE2");
+                String sellableArea=crsLasDet.getString("SELLEBLE_AREA");
+                String otherCharges=crsLasDet.getString("OTHER_CHARGES");
+                String electricityCharges=crsLasDet.getString("ELECTRICITY_CHARGES");
+                pasModuleDTO.setTxtPASStageOfConstruction(crsLasDet.getString("PER_COMPLETED"));
+                pasModuleDTO.setTxtRecommendedStage(crsLasDet.getString("PER_RECOMMENDED"));
+                int projectApprovalNo=crsLasDet.getInt("PROJECT_APPROVAL_NO");
+                int buildingId=crsLasDet.getInt("BUILDING_ID");
+                String visitedByName=crsLasDet.getString("VISITED_BY_NAME");
+                String valuationFromRPt=crsLasDet.getString("VALUATION_FROM_RPT1");
+                int builderId=crsLasDet.getInt("BUILDER_ID");
+                String valuationFromRpt2=crsLasDet.getString("VALUATION_FROM_RPT2");
+                pasModuleDTO.setTxtTechnicalVisitDate(crsLasDet.getString("VISITED_DATE"));
+                int projectCode=crsLasDet.getInt("PROJECT_CODE");
+                propertyAddr3=crsLasDet.getString("ADDRESS_LINE3");
+                //pasModuleDTO.setTxtTechnicalAgencyName("");
+                pasModuleDTO.setTxtTechnicalAgencyName("TEST_TECH_NAME");
+                String propAddess="";
+                
+                if(!("".equalsIgnoreCase(propertyAddr1) || propertyAddr1==null))
+                        propAddess=propAddess+" , "+propertyAddr1;
+                if(!("".equalsIgnoreCase(propertyAddr2) ||propertyAddr2==null))
+                        propAddess=propAddess+" , "+propertyAddr2;
+                if(!("".equalsIgnoreCase(propertyAddr3) ||propertyAddr3==null))
+                        propAddess=propAddess+" , "+propertyAddr3;
+                logger.debug("propAddess: "+propAddess);
+                pasModuleDTO.setTxtPropertyAddress(propAddess);
+                
+                pasModuleDTO.setTxtPropertyType("TEST_PROPERTY_TYPE");
+                pasModuleDTO.setTxtAPFNo("APF Number");
+                
+                logger.debug("Technical agency name: "+pasModuleDTO.getTxtTechnicalAgencyName());
+                logger.debug("Property addr1: "+propertyAddr1);
+                logger.debug("Property addr2: "+propertyAddr2);
+                logger.debug("Property addr3: "+propertyAddr3);
+                logger.debug("Txt Property address: "+pasModuleDTO.getTxtPropertyAddress());
+                logger.debug("Txt Build up area: "+pasModuleDTO.getTxtBuildUpArea());
+                logger.debug("Property type: "+pasModuleDTO.getTxtPropertyType());
+                logger.debug("Technical visit date: "+pasModuleDTO.getTxtTechnicalVisitDate());
+                logger.debug("Pas stage of construction: "+pasModuleDTO.getTxtPASStageOfConstruction());
+                logger.debug("Recommended stage : "+pasModuleDTO.getTxtRecommendedStage());
+                logger.debug("Request ID: "+pasModuleDTO.getHidPasRequestId());
+                alPASDetails.add(pasModuleDTO);
+            }
+            int lasDelete = OracleDAOFactory.executePreparedUpdate(sBufferLASDelete.toString(),alPreparedStmtDTOLasDelete);
+            logger.debug("lasDelete check..4: "+lasDelete);
+            logger.debug("alPASDetails: "+alPASDetails);
+            if(alPASDetails.size()!=0)
+                hashPasDetails.put("PAS_MAIN_DATA",alPASDetails);
+            /*if(alPriority.size()!=0)
+                hashPasDetails.put("PAS_PRIORITY",alPriority);*/
+            stmt.close();
+
+        } catch (SQLException e) {
+            logger.debug("Inside sql exception of select PAS details : "+e);
+            e.printStackTrace();
+        }
+        catch(Exception e)
+        {
+            logger.debug("Inside exception: "+e);
+            e.printStackTrace();
+                
+        }
+        logger.debug("Array list before returning in oracle pas module dao:  "+alPASDetails);
+        return hashPasDetails;
+    }
+    public int updatePASDetails (ArrayList alPasRec,String appID,PasModuleDTO pasModuleDTO) throws SQLException, NamingException, Exception
+    {
+         logger.debug("Inside updatePASDetails of oracle pas module dao");
+         String requestType="",appNo="",requestIdFromPAS="",createdateTime="",builderCompany="",buildingName="";
+         String propertyAddr1="",prodType="",projectName="",propertyValue="",nearestRailwayStation="",propertyAddr2="" ;
+         String totalValue="",status="",sellableArea="",stageofConstriction="";
+         String recommendedStage="",visitedByName="",valuationFromRPt="",valuationFromRpt2="",technicalVisitDate="",propertyAddr3="";
+         String propertyID="",landmark="";
+         int appraisedRate=0,projectApprovalNo=0,buildingId=0,builderId=0,projectCode=0,builtUpArea=0,stateName=0;
+         int otherCharges=0,electricityCharges=0;
+         int finalUpdateCheck=0;
+         logger.debug("Appid check..1: "+appID);
+         
+         logger.debug("Array list size: "+alPasRec.size());
+         PasModuleDTO pasModulDTOAl=null;
+         
+         for(int i=0;i<alPasRec.size();i++)
+         {
+             pasModulDTOAl=(PasModuleDTO)alPasRec.get(i);
+             logger.debug("Priority in array list: "+pasModulDTOAl.getTxtPriority());
+             logger.debug("Hid pas request id: "+pasModulDTOAl.getHidPasRequestId());
+         }
+         
+         int updatePropertyDetail=0;
+         int updateConstructionDetail=0;
+         int updatePropDetail=0;
+         int recordUpdatedProp=0;
+         int recordUpdateCons=0;
+         int recordUpdatePro=0;
+         int recordUpdateVal=0;
+         
+         
+         PreparedStmtDTO preparedStmtDTO = null;
+         ArrayList alPreparedStmtDTO = new ArrayList();
+         DAOCachedRowSet crs = null;
+         String appFormNo = "";
+         int paramCount = 1;
+         try
+         {
+                logger.debug("Inside try block");
+                StringBuffer sBuffer = new StringBuffer("SELECT LAA_APP_FORMNO FROM LOS_APP_APPLICATIONS WHERE APP_ID_C=?");
+        
+                preparedStmtDTO = new PreparedStmtDTO();
+                preparedStmtDTO.setTypeAt(paramCount++);
+                preparedStmtDTO.setType(1);
+                preparedStmtDTO.setStringValue(appID);
+                alPreparedStmtDTO.add(preparedStmtDTO);
+                
+                crs = OracleDAOFactory.executePreparedQuery(sBuffer.toString(), alPreparedStmtDTO);
+                
+                while(crs.next())
+                {
+                        logger.debug("Inside while loop");
+                        appFormNo=crs.getString("LAA_APP_FORMNO");
+                        logger.debug("Application form no: "+appFormNo);
+                }
+                
+                PreparedStmtDTO objPreparedStmtDTODelPrio = new PreparedStmtDTO();
+                ArrayList alPreparedStmtDelPrio = new ArrayList();
+                int paramCountDelPrio = 1;
+                int recordDelPrio=0;
+                StringBuffer sBufferDelPrio = new StringBuffer("DELETE FROM PAS_DOCUCMENT_DETAILS WHERE APP_ID_C=?  ");
+                
+                objPreparedStmtDTODelPrio = new PreparedStmtDTO();
+                objPreparedStmtDTODelPrio.setTypeAt(paramCountDelPrio++);
+    	        objPreparedStmtDTODelPrio.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+    	        objPreparedStmtDTODelPrio.setStringValue(appID);
+    	        alPreparedStmtDelPrio.add(objPreparedStmtDTODelPrio);
+                
+                recordDelPrio = OracleDAOFactory.executePreparedUpdate(sBufferDelPrio.toString(),alPreparedStmtDelPrio);
+                
+                
+                PreparedStmtDTO objPreparedStmtDTOPriority = new PreparedStmtDTO();
+                ArrayList alPreparedStmtPriority = new ArrayList();
+                int paramCountPriority = 1;
+                int recordPriority=0;
+                
+                PasModuleDTO pasModulePrio=null;
+                if(alPasRec.size()!=0)
+                {
+                    logger.debug("Array list size not 0");
+                    for(int i=0;i<alPasRec.size();i++)
+                    {
+                         pasModulePrio=(PasModuleDTO)alPasRec.get(i);
+                         StringBuffer sBufferPriority = new StringBuffer("INSERT INTO PAS_DOCUCMENT_DETAILS(APP_ID_C, PDD_APPLICATION_NO,PDD_PRIORITY) VALUES( ");
+                         
+                         sBufferPriority.append(" ?, ");
+                         objPreparedStmtDTOPriority=new PreparedStmtDTO();
+                         objPreparedStmtDTOPriority.setTypeAt(paramCountPriority++);
+                         objPreparedStmtDTOPriority.setType(1);
+                         objPreparedStmtDTOPriority.setStringValue(appID);
+                         alPreparedStmtPriority.add(objPreparedStmtDTOPriority);
+                         
+                         sBufferPriority.append(" ?, ");
+                         objPreparedStmtDTOPriority=new PreparedStmtDTO();
+                         objPreparedStmtDTOPriority.setTypeAt(paramCountPriority++);
+                         objPreparedStmtDTOPriority.setType(1);
+                         objPreparedStmtDTOPriority.setStringValue(appFormNo);
+                         alPreparedStmtPriority.add(objPreparedStmtDTOPriority);
+                         
+                         sBufferPriority.append(" ? ");
+                         objPreparedStmtDTOPriority=new PreparedStmtDTO();
+                         objPreparedStmtDTOPriority.setTypeAt(paramCountPriority++);
+                         objPreparedStmtDTOPriority.setType(1);
+                         objPreparedStmtDTOPriority.setStringValue(pasModulePrio.getTxtPriority());
+                         alPreparedStmtPriority.add(objPreparedStmtDTOPriority);
+                 
+                         sBufferPriority.append(")");
+                 
+                         recordPriority = OracleDAOFactory.executePreparedUpdate(sBufferPriority.toString(), alPreparedStmtPriority);       
+                    }
+                }
+                ArrayList alPasDetails=new ArrayList();
+                
+                Connection con=OracleDAOFactory.getConnection();
+                //CallableStatement stmt = con.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_PAS_PROPERT_DETAILS(?, ?); END;");
+                CallableStatement stmt = con.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_PAS_PROPERT_DETAILS(?); END;");
+                stmt.setString(1, appFormNo); 
+                //stmt.registerOutParameter(2, OracleTypes.CURSOR); //REF CURSOR
+                stmt.execute();
+                //ResultSet rs = (ResultSet)stmt.getObject (2);
+                logger.debug("Before while loop");
+                
+                
+                ArrayList alLASDetails=new ArrayList();
+                ArrayList alPreparedStmtDTOLasDet = new ArrayList();
+                PreparedStmtDTO objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+                StringBuffer sBufferLASDetails=new StringBuffer();
+                int paramCountLasDet=1;
+                DAOCachedRowSet crsLasDet=null;
+                
+                sBufferLASDetails.append("SELECT REQUEST_ID,REQUEST_TYPE, APPLICATION_NO, REQUEST_ID, REQUEST_DATE, BUILDER_COMPANY, ");
+                sBufferLASDetails.append("BUILDING_NAME, AREA_OF_LAND, ADDRESS_LINE1, PRODUCT_TYPE, PROPERTY_TYPE, PROJECT_NAME,");
+                sBufferLASDetails.append("Property_Value, STATE_NAME, NEAREST_RAIL_STATION, Landmark, ADDRESS_LINE2, TOTAL_VALUE,");
+                sBufferLASDetails.append("Status, APPRAISAL_VALUE2, SELLEBLE_AREA, OTHER_CHARGES, ELECTRICITY_CHARGES,");
+                sBufferLASDetails.append("PER_COMPLETED, PER_RECOMMENDED, PROJECT_APPROVAL_NO, BUILDING_ID,VISITED_BY_NAME, ");
+                sBufferLASDetails.append("VALUATION_FROM_RPT1, BUILDER_ID, VALUATION_FROM_RPT2, VISITED_DATE, PROJECT_CODE, ADDRESS_LINE3");                 
+                sBufferLASDetails.append(" FROM ATL_APS_PAS_PROPERT_DETAILS WHERE APPLICATION_NO=?");
+                
+                
+                objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+                objPreparedStmtDTOLasDet.setTypeAt(paramCountLasDet++);
+        		objPreparedStmtDTOLasDet.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+        		objPreparedStmtDTOLasDet.setStringValue(appFormNo);
+        		alPreparedStmtDTOLasDet.add(objPreparedStmtDTOLasDet);
+                objPreparedStmtDTOLasDet=null;
+                
+                crsLasDet = OracleDAOFactory.executePreparedQuery(sBufferLASDetails.toString(),alPreparedStmtDTOLasDet);
+                
+                
+                ArrayList alPreparedStmtDTOLasDelete = new ArrayList();
+                PreparedStmtDTO objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+                StringBuffer sBufferLASDelete=new StringBuffer();
+                int paramCountLasDelete=1;
+                DAOCachedRowSet crsLasDelete=null;
+
+                sBufferLASDelete.append("DELETE FROM ATL_APS_PAS_PROPERT_DETAILS WHERE APPLICATION_NO=?");
+
+                objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+                objPreparedStmtDTOLasDelete.setTypeAt(paramCountLasDelete++);
+                objPreparedStmtDTOLasDelete.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                objPreparedStmtDTOLasDelete.setStringValue(appFormNo);
+                alPreparedStmtDTOLasDelete.add(objPreparedStmtDTOLasDelete);
+                objPreparedStmtDTOLasDet=null;            
+                
+                PasModuleDTO pasModDTO=new PasModuleDTO();
+                int countRec=0;
+                    
+                PasModuleDTO pasRequestDTO=null;
+                if(alPasRec.size()!=0)
+                {        
+                    for(int i=0;i<alPasRec.size();i++)
+                    {
+                            pasRequestDTO=(PasModuleDTO)alPasRec.get(i);
+                            
+                             while (crsLasDet.next()) 
+                            {
+                                logger.debug("Before while loop");
+                                if(pasRequestDTO.getHidPasRequestId().equalsIgnoreCase(crsLasDet.getString("REQUEST_ID")))
+                                {
+                                    countRec=countRec+1;
+                                    pasModDTO=new PasModuleDTO();
+                                    logger.debug("Request ID matches");
+                                    requestType=crsLasDet.getString("REQUEST_TYPE");
+                                    appNo=crsLasDet.getString("APPLICATION_NO");
+                                    logger.debug("app-->"+appNo);
+                                    requestIdFromPAS=crsLasDet.getString("REQUEST_ID");
+                                    logger.debug("requestIdFromPAS: "+requestIdFromPAS);
+                                    createdateTime=crsLasDet.getString("REQUEST_DATE");
+                                    logger.debug("createdateTime: "+createdateTime);
+                                    builderCompany=crsLasDet.getString("BUILDER_COMPANY");
+                                    logger.debug("builderCompany: "+builderCompany);
+                                    buildingName=crsLasDet.getString("BUILDING_NAME");
+                                    logger.debug("buildingName :"+buildingName);
+                                    builtUpArea=crsLasDet.getInt("AREA_OF_LAND");
+                                    logger.debug("builtUpArea: "+builtUpArea);
+                                    propertyAddr1=crsLasDet.getString("ADDRESS_LINE1");
+                                    logger.debug("propertyAddr1: "+propertyAddr1);
+                                    prodType=crsLasDet.getString("PRODUCT_TYPE");
+                                    logger.debug("prodType: "+prodType);
+                                    propertyID=crsLasDet.getString("PROPERTY_TYPE");
+                                    logger.debug("propertyType: "+propertyID);
+                                    projectName=crsLasDet.getString("PROJECT_NAME");
+                                    logger.debug("project nmae: "+projectName);
+                                    propertyValue=crsLasDet.getString("Property_Value");
+                                    logger.debug("propertyValue: "+propertyValue);
+                                    stateName=crsLasDet.getInt("STATE_NAME");
+                                    logger.debug("state name" +stateName);
+                                    nearestRailwayStation=crsLasDet.getString("NEAREST_RAIL_STATION");
+                                    logger.debug("nearestRailwayStation: "+nearestRailwayStation);
+                                    landmark=crsLasDet.getString("Landmark");
+                                    logger.debug("Landmark: "+landmark);
+                                    propertyAddr2=crsLasDet.getString("ADDRESS_LINE2");
+                                    logger.debug("propertyAddr2: "+propertyAddr2);
+                                    totalValue=crsLasDet.getString("TOTAL_VALUE");
+                                    logger.debug("totalValue: "+totalValue);
+                                    status=crsLasDet.getString("Status");
+                                    logger.debug("statusl "+status);
+                                    appraisedRate=crsLasDet.getInt("APPRAISAL_VALUE2");
+                                    logger.debug("appraisedRate: "+appraisedRate);
+                                    sellableArea=crsLasDet.getString("SELLEBLE_AREA");
+                                    logger.debug("sellableArea: "+sellableArea);
+                                    otherCharges=crsLasDet.getInt("OTHER_CHARGES");
+                                    logger.debug("otherCharges: "+otherCharges);
+                                    electricityCharges=crsLasDet.getInt("ELECTRICITY_CHARGES");
+                                    logger.debug("electricityCharges: "+electricityCharges);
+                                    stageofConstriction=crsLasDet.getString("PER_COMPLETED");
+                                    logger.debug("stageofConstriction: "+stageofConstriction);
+                                    recommendedStage=crsLasDet.getString("PER_RECOMMENDED");
+                                    logger.debug("recommendedStage : "+recommendedStage);
+                                    projectApprovalNo=crsLasDet.getInt("PROJECT_APPROVAL_NO");
+                                    logger.debug("projectApprovalNo: "+projectApprovalNo);
+                                    buildingId=crsLasDet.getInt("BUILDING_ID");
+                                    logger.debug("buildingId: "+buildingId);
+                                    visitedByName=crsLasDet.getString("VISITED_BY_NAME");
+                                    logger.debug("visitedByName: "+visitedByName);
+                                    valuationFromRPt=crsLasDet.getString("VALUATION_FROM_RPT1");
+                                    logger.debug("valuationFromRPt: "+valuationFromRPt);
+                                    builderId=crsLasDet.getInt("BUILDER_ID");
+                                    logger.debug("builderId: "+builderId);
+                                    valuationFromRpt2=crsLasDet.getString("VALUATION_FROM_RPT2");
+                                    logger.debug("valuationFromRpt2: "+valuationFromRpt2);
+                                    technicalVisitDate=crsLasDet.getString("VISITED_DATE");
+                                    logger.debug("technicalVisitDate: "+technicalVisitDate);
+                                    projectCode=crsLasDet.getInt("PROJECT_CODE");
+                                    logger.debug("projectCode: "+projectCode);
+                                    propertyAddr3=crsLasDet.getString("ADDRESS_LINE3");
+                                    logger.debug("propertyAddr3: "+propertyAddr3);
+                                }
+                            }
+                    }
+                }
+                
+               
+               
+                
+                int lasDelete = OracleDAOFactory.executePreparedUpdate(sBufferLASDelete.toString(),alPreparedStmtDTOLasDelete);
+                logger.debug("lasDeleteL check..5: "+lasDelete);
+                
+                logger.debug("countRec: "+countRec);
+                 logger.debug("project nmae: "+projectName);
+                 logger.debug("builderId outside: "+builderId);
+
+                ArrayList alPreparedStmtDTODetails = new ArrayList();
+                PreparedStmtDTO objPreparedStmtDTODetails = null;
+                int paramCountDetails = 1;
+
+                if(countRec>=0)
+                {
+                    ArrayList alPreparedStmtDTODelete = new ArrayList();
+                    PreparedStmtDTO objPreparedStmtDTODelete = null;
+                    int paramCountDelete = 1;
+                    
+                    //for (int i=0;i<alPasDetails.size();i++)
+                    //{
+                        //PasModuleDTO pasLawyerDocDetails=(PasModuleDTO)alPasDetails.get(i);
+                        
+                        StringBuffer sBufferRecord = new StringBuffer();
+                        PreparedStmtDTO objPreparedStmtDTO1Record= new PreparedStmtDTO();
+                        ArrayList alPreparedStmtDTORecord = new ArrayList();
+                        int paramCountRecord = 1;
+                        DAOCachedRowSet crsRecord = null;
+                        int propCount=0;
+                        
+                        sBufferRecord.append("SELECT count(1) COUNT FROM LEA_PROPERTY_DTL WHERE APP_ID_C=?");
+                        
+                        logger.debug("application in check: "+appID);
+                       
+
+                        objPreparedStmtDTO1Record =null;
+                		objPreparedStmtDTO1Record = new PreparedStmtDTO();
+                		objPreparedStmtDTO1Record.setTypeAt(paramCountRecord++);
+                		objPreparedStmtDTO1Record.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                		objPreparedStmtDTO1Record.setStringValue(appID);
+                		alPreparedStmtDTORecord.add(objPreparedStmtDTO1Record);
+
+                        crsRecord = OracleDAOFactory.executePreparedQuery(sBufferRecord.toString(),alPreparedStmtDTORecord);
+                        if(crsRecord.next())
+                        {
+                                logger.debug("record exists");
+                                propCount=crsRecord.getInt("COUNT");
+                        }
+                        logger.debug("propCount: "+propCount);
+                        
+                        
+                        StringBuffer sBufferCon = new StringBuffer();
+                        PreparedStmtDTO objPreparedStmtDTO1Con= new PreparedStmtDTO();
+                        ArrayList alPreparedStmtDTOCon = new ArrayList();
+                        int paramCountCon = 1;
+                        DAOCachedRowSet crsCon = null;
+                        int conCount=0;
+                        
+                        sBufferCon.append("SELECT count(1) COUNT FROM LEA_CONSTRUCTION_DTL WHERE APP_ID_C=?");
+                        
+                        logger.debug("application in check: "+appID);
+                       
+
+                        objPreparedStmtDTO1Con =null;
+                		objPreparedStmtDTO1Con = new PreparedStmtDTO();
+                		objPreparedStmtDTO1Con.setTypeAt(paramCountCon++);
+                		objPreparedStmtDTO1Con.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                		objPreparedStmtDTO1Con.setStringValue(appID);
+                		alPreparedStmtDTOCon.add(objPreparedStmtDTO1Con);
+
+                        crsCon = OracleDAOFactory.executePreparedQuery(sBufferCon.toString(),alPreparedStmtDTOCon);
+                        if(crsCon.next())
+                        {
+                                logger.debug("record exists");
+                                conCount=crsCon.getInt("COUNT");
+                        }
+                        logger.debug("consCount: "+conCount);
+                        
+                        
+                        StringBuffer sBufferPro = new StringBuffer();
+                        PreparedStmtDTO objPreparedStmtDTO1Prop= new PreparedStmtDTO();
+                        ArrayList alPreparedStmtDTOPro = new ArrayList();
+                        int paramCountPro = 1;
+                        DAOCachedRowSet crsProp = null;
+                        int proCount=0;
+                        
+                        sBufferPro.append("SELECT count(1) COUNT FROM LEA_PROP_DTL WHERE APP_ID_C=?");
+                        
+                        logger.debug("application in check: "+appID);
+                       
+
+                        objPreparedStmtDTO1Prop =null;
+                		objPreparedStmtDTO1Prop = new PreparedStmtDTO();
+                		objPreparedStmtDTO1Prop.setTypeAt(paramCountPro++);
+                		objPreparedStmtDTO1Prop.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                		objPreparedStmtDTO1Prop.setStringValue(appID);
+                		alPreparedStmtDTOPro.add(objPreparedStmtDTO1Prop);
+
+                        crsProp = OracleDAOFactory.executePreparedQuery(sBufferPro.toString(),alPreparedStmtDTOPro);
+                        if(crsProp.next())
+                        {
+                                logger.debug("record exists");
+                                proCount=crsProp.getInt("COUNT");
+                        }
+                        logger.debug("proCount: "+proCount);
+                        
+                         int paramCountProp = 1;
+		                 ArrayList alPreparedStmtDTOProp = new ArrayList();
+                         PreparedStmtDTO objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         
+                         StringBuffer sBufferProp = new StringBuffer("INSERT INTO LEA_PROPERTY_DTL(APP_ID_C,BUILDERID,WINGID,VC_AREA_LOT_FEET,PROPERTY_ADDR1,PROD_TYPES,PROJECTID,VERIFY_BY,STATEID,NEAREST_TRN_STN,Lpd_Nearest_Land_Mrk,");
+                         sBufferProp.append("LPD_SELLER_ADD_TWO,APPROVED,BUILDER_COMPANY_FLAG,Wing_Name_FLAG ,Area_for_plot_FLAG ,Address_One_FLAG ,Product_Type_FLAG ,");
+                         sBufferProp.append("Project_Name_FLAG ,Verify_By_FLAG ,State_FLAG ,Nearest_Train_Station_FLAG ,Nearest_Landmark_FLAG ,Seller_Address_Two_FLAG ,");                 
+                         sBufferProp.append("Approved_FLAG ,PROPERTYID,STATUS,MAKERID,MAKEDATE,AUTHID,AUTHDATE) VALUES(");
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("1-->>"+appID);
+                		 objPreparedStmtDTOProp.setStringValue(appID);    //1
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("2");
+                         objPreparedStmtDTOProp.setIntValue(1);            //2
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("3");
+                         objPreparedStmtDTOProp.setIntValue(1);    //3
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("4");
+                		 objPreparedStmtDTOProp.setStringValue(null);
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("5-->>"+propertyAddr1);
+                		 objPreparedStmtDTOProp.setStringValue(propertyAddr1);        //5
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("6-->>"+prodType);
+                		 objPreparedStmtDTOProp.setStringValue(prodType);        //6
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                                    
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("7-->>"+projectCode);
+                         objPreparedStmtDTOProp.setIntValue(projectCode);    //7
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("8");
+                		 objPreparedStmtDTOProp.setStringValue(null);        //8
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("9-->>"+stateName);
+                         objPreparedStmtDTOProp.setIntValue(stateName);        //9
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("10-->>"+nearestRailwayStation);
+                		 objPreparedStmtDTOProp.setStringValue(nearestRailwayStation);    //10
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("11-->>"+landmark);
+                		 objPreparedStmtDTOProp.setStringValue(landmark);        //11
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("12");
+                		 objPreparedStmtDTOProp.setStringValue(null);        //12
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("13");
+                         objPreparedStmtDTOProp.setStringValue("Y");
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("14-->>"+builderId);
+                         if(builderId!=0)
+                		     objPreparedStmtDTOProp.setStringValue("Y");    //14
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                		 objPreparedStmtDTOProp.setStringValue("N");    //wing name    //15
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("15");
+                		 objPreparedStmtDTOProp.setStringValue("N");   //16        //plot area
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("16-->>"+propertyAddr1);
+                         if(!propertyAddr1.equalsIgnoreCase(""))
+                		     objPreparedStmtDTOProp.setStringValue("Y");    //17
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("17-->>"+prodType);
+                         if(!prodType.equalsIgnoreCase(""))
+                		     objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("18-->>"+projectCode);
+                         if(projectCode==0)
+                		     objPreparedStmtDTOProp.setStringValue("N");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("19");
+                         objPreparedStmtDTOProp.setStringValue("N");        //verify by flag
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("20-->>"+stateName);
+                         if(stateName!=0)
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("21-->>"+nearestRailwayStation);
+                         if(!nearestRailwayStation.equalsIgnoreCase(""))
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("22-->>"+landmark);
+                         if(!landmark.equalsIgnoreCase(""))
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("23");
+                         objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("24");
+                         objPreparedStmtDTOProp.setStringValue("Y");
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("25");
+                         objPreparedStmtDTOProp.setIntValue(1);
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("26");
+                         objPreparedStmtDTOProp.setStringValue("A");
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("27-->>"+pasModuleDTO.getMakerID());
+                         objPreparedStmtDTOProp.setStringValue(pasModuleDTO.getMakerID());
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         logger.debug("28");
+                         sBufferProp.append("sysdate,");
+                         
+                         sBufferProp.append("?,");
+                         objPreparedStmtDTOProp= new PreparedStmtDTO();
+                         objPreparedStmtDTOProp.setTypeAt(paramCountProp++);
+                		 objPreparedStmtDTOProp.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("29-->>"+pasModuleDTO.getMakerID());
+                         objPreparedStmtDTOProp.setStringValue(pasModuleDTO.getMakerID());
+                         alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         
+                         logger.debug("30");
+                         sBufferProp.append("sysdate ");
+                         
+                         sBufferProp.append(")");
+                         
+                         logger.debug("Checking.....");
+                         
+                         int paramCountUpdateProp = 1;
+                         ArrayList alPreparedStmtUPDTOUpdateProp = new ArrayList();
+                         PreparedStmtDTO objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         
+                         StringBuffer sBufferUpdateProp = new StringBuffer("UPDATE LEA_PROPERTY_DTL SET ");
+                         
+                         sBufferUpdateProp.append("BUILDERID = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);
+                         objPreparedStmtDTOUpdateProp.setType(PreparedStmtDTO.DATA_TYPE_INT);//2
+                         objPreparedStmtDTOUpdateProp.setIntValue(1);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",WINGID = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);
+                         objPreparedStmtDTOUpdateProp.setType(PreparedStmtDTO.DATA_TYPE_INT);//3
+                         objPreparedStmtDTOUpdateProp.setIntValue(1);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",VC_AREA_LOT_FEET = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//4
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(null);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",PROPERTY_ADDR1 = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//5
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(propertyAddr1);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",PROD_TYPES = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//6
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(prodType);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",PROJECTID = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);
+                         objPreparedStmtDTOUpdateProp.setType(PreparedStmtDTO.DATA_TYPE_INT);//7
+                         objPreparedStmtDTOUpdateProp.setIntValue(projectCode);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",VERIFY_BY = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//8
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(null);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",STATEID = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//9
+                         objPreparedStmtDTOUpdateProp.setType(0);
+                         objPreparedStmtDTOUpdateProp.setIntValue(stateName);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",NEAREST_TRN_STN = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//10
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(nearestRailwayStation);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Lpd_Nearest_Land_Mrk = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//11
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(landmark);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         
+                         sBufferUpdateProp.append(",LPD_SELLER_ADD_TWO = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//11
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(null);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",APPROVED = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue("Y");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);//12
+                         
+                         sBufferUpdateProp.append(",BUILDER_COMPANY_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         if(builderId!=0)
+                		     objPreparedStmtDTOProp.setStringValue("Y");    //13
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                		 alPreparedStmtDTOProp.add(objPreparedStmtDTOProp);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Wing_Name_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//14
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue("N");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Area_for_plot_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//15
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue("N");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Address_One_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//16
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         if(!propertyAddr1.equalsIgnoreCase(""))
+                		     objPreparedStmtDTOProp.setStringValue("Y");    //17
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Product_Type_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//17
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         if(!prodType.equalsIgnoreCase(""))
+                		     objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Project_Name_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//18
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         if(projectCode==0)
+                		     objPreparedStmtDTOProp.setStringValue("N");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Verify_By_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue("N");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",State_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//20
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         if(stateName!=0)
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Nearest_Train_Station_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         if(!nearestRailwayStation.equalsIgnoreCase(""))
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Nearest_Landmark_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         if(!landmark.equalsIgnoreCase(""))
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Seller_Address_Two_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue("N");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",Approved_FLAG = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue("Y");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",PROPERTYID = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(0);
+                         objPreparedStmtDTOUpdateProp.setIntValue(1);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",STATUS = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue("A");
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",MAKERID = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(pasModuleDTO.getMakerID());
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",MAKEDATE = sysdate");
+                         
+                         sBufferUpdateProp.append(",AUTHID = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(pasModuleDTO.getMakerID());
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         sBufferUpdateProp.append(",AUTHDATE = sysdate");
+                         
+                         sBufferUpdateProp.append(" WHERE APP_ID_C = ?");
+                         objPreparedStmtDTOUpdateProp = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProp.setTypeAt(paramCountUpdateProp++);//19
+                         objPreparedStmtDTOUpdateProp.setType(1);
+                         objPreparedStmtDTOUpdateProp.setStringValue(appID);
+                         alPreparedStmtUPDTOUpdateProp.add(objPreparedStmtDTOUpdateProp);
+                         
+                         
+                         
+                         int paramCountCons = 1;
+		                 ArrayList alPreparedStmtDTOCons = new ArrayList();
+                         PreparedStmtDTO objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         
+                         StringBuffer sBufferCons = new StringBuffer("INSERT INTO LEA_CONSTRUCTION_DTL(APP_ID_C,BUILTUP_AREA,");
+                         sBufferCons.append("LAND_AREA,OTHER_COST, MUNICIPAL_CHRG, STAGE_OF_CONSTRUCTION, Built_Up_Area1_FLAG,");
+                         sBufferCons.append("Land_Area_FLAG, Other_Cost_FLAG, ,Electricity_Board_FLAG, Stage_of_Construction1_FLAG,");
+                         sBufferCons.append("PROPERTYID, STATUS,MAKERID, MAKEDATE, AUTHID, AUTHDATE) values(");
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("11-->>"+appID);
+                         objPreparedStmtDTOCons.setStringValue(appID);
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("12");
+                         objPreparedStmtDTOCons.setIntValue(0);
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("13-->>"+builtUpArea);
+                         objPreparedStmtDTOCons.setIntValue(builtUpArea);
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("14-->>"+otherCharges);
+                         objPreparedStmtDTOCons.setIntValue(otherCharges);
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("15");
+                         objPreparedStmtDTOCons.setIntValue(0);
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("16");
+                         objPreparedStmtDTOCons.setStringValue("STAGE");
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("17");
+                         objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("18-->>"+builtUpArea);
+                         if(builtUpArea!=0)
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("19-->>"+otherCharges);
+                         if(otherCharges!=0)
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("110-->>"+electricityCharges);
+                         if(electricityCharges!=0)
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("111");
+                         objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("112");
+                         objPreparedStmtDTOCons.setIntValue(1);
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("113-->>"+status);
+                         objPreparedStmtDTOCons.setStringValue(status);
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("114-->>"+pasModuleDTO.getMakerID());
+                         objPreparedStmtDTOCons.setStringValue(pasModuleDTO.getMakerID());
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         logger.debug("115");
+                         sBufferCons.append("SYSDATE,");
+                         
+                         sBufferCons.append("?,");
+                         objPreparedStmtDTOCons= new PreparedStmtDTO();
+                         objPreparedStmtDTOCons.setTypeAt(paramCountCons++);
+                		 objPreparedStmtDTOCons.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("116-->>"+pasModuleDTO.getMakerID());
+                         objPreparedStmtDTOCons.setStringValue(pasModuleDTO.getMakerID());
+                         alPreparedStmtDTOCons.add(objPreparedStmtDTOCons);
+                         
+                         logger.debug("115");
+                         sBufferCons.append("SYSDATE");
+                         
+                         sBufferCons.append(")");
+                         
+                         
+                         int paramCountConsUPdate = 1;
+		                 ArrayList alPreparedStmtDTOConsUpdate = new ArrayList();
+                         PreparedStmtDTO objPreparedStmtDTOConsUpdate= new PreparedStmtDTO();
+                         
+                         StringBuffer sBufferUpdateCons = new StringBuffer("UPDATE LEA_CONSTRUCTION_DTL SET ");
+                         
+                         sBufferUpdateCons.append("BUILTUP_AREA = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(0);
+                         objPreparedStmtDTOConsUpdate.setIntValue(0);//2
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",LAND_AREA = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(0);
+                         objPreparedStmtDTOConsUpdate.setIntValue(builtUpArea);
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",OTHER_COST = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(0);
+                         objPreparedStmtDTOConsUpdate.setIntValue(otherCharges);
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",MUNICIPAL_CHRG = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(0);
+                         objPreparedStmtDTOConsUpdate.setIntValue(0);
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",STAGE_OF_CONSTRUCTION = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         objPreparedStmtDTOConsUpdate.setStringValue("STAGE");    //1
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",Built_Up_Area1_FLAG = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         if(builtUpArea!=0)
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",Land_Area_FLAG = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         objPreparedStmtDTOConsUpdate.setStringValue("N");    //1
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",Other_Cost_FLAG = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         if(otherCharges!=0)
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",Electricity_Board_FLAG = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         if(electricityCharges!=0)
+                             objPreparedStmtDTOProp.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProp.setStringValue("N");
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",Stage_of_Construction1_FLAG = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         objPreparedStmtDTOConsUpdate.setStringValue("N");    //1
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",PROPERTYID = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(0);
+                         objPreparedStmtDTOConsUpdate.setIntValue(1);
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",STATUS = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         objPreparedStmtDTOConsUpdate.setStringValue("A");    //1
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",MAKERID = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         objPreparedStmtDTOConsUpdate.setStringValue(pasModuleDTO.getMakerID());    //1
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",MAKEDATE = sysdate");
+                         
+                         sBufferUpdateCons.append(",AUTHID = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         objPreparedStmtDTOConsUpdate.setStringValue(pasModuleDTO.getMakerID());    //1
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         sBufferUpdateCons.append(",AUTHDATE = sysdate");
+                         
+                         sBufferUpdateCons.append(" WHERE APP_ID_C = ?");
+                         objPreparedStmtDTOConsUpdate = new PreparedStmtDTO();
+                         objPreparedStmtDTOConsUpdate.setTypeAt(paramCountConsUPdate++);//19
+                         objPreparedStmtDTOConsUpdate.setType(1);
+                         objPreparedStmtDTOConsUpdate.setStringValue(appID);
+                         alPreparedStmtDTOConsUpdate.add(objPreparedStmtDTOConsUpdate);
+                         
+                         logger.debug("checking..2");    
+                         
+                         
+                         int paramCountProDtl = 1;
+		                 ArrayList alPreparedStmtDTOProDtl = new ArrayList();
+                         PreparedStmtDTO objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         
+                         StringBuffer sBufferPropDtl=new StringBuffer("INSERT INTO LEA_PROP_DTL(APP_ID_C, TRANCHE_DETAILS, ");
+                         sBufferPropDtl.append("LPD_APF_REFNO, LPD_BUILDING_ID, LPD_BUILD_AREA, LPD_STAGE, LPD_TECH_AGENCY_NAME, ");
+                         sBufferPropDtl.append("LPD_VALUATION1, LPD_BUILDER_ID, LPD_AMOUNT, LPD_DATE, LPD_PROJECT_ID, ");
+                         sBufferPropDtl.append("APF_ADF_Ref_No_FLAG, Building_ID_FLAG, Built_Up_Area3_FLAG, ");
+                         sBufferPropDtl.append("Stage_of_Construction2_FLAG, Technical_Agency_Name_FLAG, LPD_VALUATION1_FLAG,");
+                         sBufferPropDtl.append("Builder_ID_FLAG, RECOMMENDED_AMOUNT_FLAG, DOV_by_Technical_Agency_FLAG, ");
+                         sBufferPropDtl.append("Project_ID_FLAG) VALUES(");
+                         
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("21-->>"+appID);
+                         objPreparedStmtDTOProDtl.setStringValue(appID);
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("22");
+                         objPreparedStmtDTOProDtl.setStringValue("T1");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("23-->>"+appID);
+                         objPreparedStmtDTOProDtl.setStringValue("1");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("24-->>"+buildingId);
+                         objPreparedStmtDTOProDtl.setStringValue(Integer.toString(buildingId));
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("25");
+                         objPreparedStmtDTOProDtl.setStringValue("1002");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("26-->>"+stageofConstriction);
+                         objPreparedStmtDTOProDtl.setStringValue(stageofConstriction);
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("27");
+                         objPreparedStmtDTOProDtl.setStringValue("TECH_AGENCY_NAME");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("28-->>"+valuationFromRPt);
+                         objPreparedStmtDTOProDtl.setStringValue(valuationFromRPt);
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("29-->>"+builderId);
+                         objPreparedStmtDTOProDtl.setStringValue(Integer.toString(builderId));
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_INT);
+                         logger.debug("210");
+                         objPreparedStmtDTOProDtl.setIntValue(1000);
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("211-->>"+technicalVisitDate);
+                         objPreparedStmtDTOProDtl.setStringValue(technicalVisitDate);
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("212-->>"+projectCode);
+                         objPreparedStmtDTOProDtl.setStringValue(Integer.toString(projectCode));
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         //shilpa 
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("213");
+                         objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("214-->>"+buildingId);
+                         if(buildingId!=0)
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("215");
+                         objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("216-->>"+stageofConstriction);
+                         if(!stageofConstriction.equalsIgnoreCase(""))
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("217");
+                         objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("218-->>"+valuationFromRPt);
+                         if(null==valuationFromRPt || "".equalsIgnoreCase(valuationFromRPt))
+                         //if(!valuationFromRPt.equalsIgnoreCase(""))
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("219-->>"+builderId);
+                         if(builderId!=0)
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("220");
+                         objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("221-->>"+technicalVisitDate);
+                         if(!technicalVisitDate.equalsIgnoreCase(""))
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append("?,");
+                         objPreparedStmtDTOProDtl= new PreparedStmtDTO();
+                         objPreparedStmtDTOProDtl.setTypeAt(paramCountProDtl++);
+                		 objPreparedStmtDTOProDtl.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                         logger.debug("221-->>"+projectCode);
+                         if(projectCode!=0)
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOProDtl.add(objPreparedStmtDTOProDtl);
+                         
+                         sBufferPropDtl.append(")");
+                         
+                         
+                         int paramCountUpdateProDtl = 1;
+		                 ArrayList alPreparedStmtDTOUpdateProDtl = new ArrayList();
+                         PreparedStmtDTO objPreparedStmtDTOUpdateProDtl= new PreparedStmtDTO();
+                         
+                         StringBuffer sBufferUpdatePropDtl = new StringBuffer("UPDATE LEA_PROP_DTL SET ");
+                         
+                         sBufferUpdatePropDtl.append(" TRANCHE_DETAILS = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue("T1");    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",LPD_APF_REFNO = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue("1");    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",LPD_BUILDING_ID = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue(Integer.toString(buildingId));    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",LPD_BUILD_AREA = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue("1002");    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",LPD_STAGE = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue(stageofConstriction);    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",LPD_TECH_AGENCY_NAME = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue("TECH_AGENCY_NAME");    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",LPD_VALUATION1 = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue(valuationFromRPt);    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",LPD_BUILDER_ID = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue(Integer.toString(builderId));    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",LPD_AMOUNT = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(0);
+                         objPreparedStmtDTOUpdateProDtl.setIntValue(1000);
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         /*sBufferUpdatePropDtl.append(",LPD_DATE = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         //objPreparedStmtDTOUpdateProDtl.setStringValue(technicalVisitDate);    //1
+                         objPreparedStmtDTOUpdateProDtl.setStringValue("TO_DATE("+technicalVisitDate+",'DD/MM/YYYY')");    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         //sBuffer.append(", LPD_DATE = TO_DATE('").append(technicalVisitDate).append("','DD/MM/YYYY')");*/
+                         
+                         sBuffer.append(", LPD_DATE = TO_DATE('").append(technicalVisitDate).append("','DD/MM/YYYY')");
+                         
+                         sBufferUpdatePropDtl.append(",LPD_PROJECT_ID = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue(Integer.toString(projectCode));    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",APF_ADF_Ref_No_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue("N");    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",Building_ID_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         if(buildingId!=0)
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",Built_Up_Area3_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",Stage_of_Construction2_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         if(!stageofConstriction.equalsIgnoreCase(""))
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",Technical_Agency_Name_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue("N");    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",LPD_VALUATION1_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         if(null==valuationFromRPt || "".equalsIgnoreCase(valuationFromRPt))
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",Builder_ID_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         if(builderId!=0)
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",RECOMMENDED_AMOUNT_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue("N");    //1
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",DOV_by_Technical_Agency_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         if(!technicalVisitDate.equalsIgnoreCase(""))
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(",Project_ID_FLAG = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         if(projectCode!=0)
+                             objPreparedStmtDTOProDtl.setStringValue("Y");
+                         else
+                             objPreparedStmtDTOProDtl.setStringValue("N");
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         sBufferUpdatePropDtl.append(" WHERE APP_ID_C = ?");
+                         objPreparedStmtDTOUpdateProDtl = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateProDtl.setTypeAt(paramCountUpdateProDtl++);//19
+                         objPreparedStmtDTOUpdateProDtl.setType(1);
+                         objPreparedStmtDTOUpdateProDtl.setStringValue(appID);
+                         alPreparedStmtDTOUpdateProDtl.add(objPreparedStmtDTOUpdateProDtl);
+                         
+                         
+                        ArrayList alPasValuationDet=selectPasValuationDetails(appFormNo);
+                        String propertyValAmt="";
+                        for (int i=0;i<alPasValuationDet.size();i++)
+                        {
+                            logger.debug("inside for loop");
+                            PasModuleDTO pasModValuation=(PasModuleDTO)alPasValuationDet.get(i);
+                            logger.debug("Pas val req: "+pasModValuation.getPasValReq());
+                            if(!("".equalsIgnoreCase(pasModValuation.getPasValReq()) || pasModValuation.getPasValReq()==null))
+                            {
+                                logger.debug("here...");
+                                propertyValAmt=pasModValuation.getPropertyValuationAmount();
+                            }
+                        }
+                        logger.debug("property Valuation amount in dao-->>"+propertyValAmt);
+                        
+                         
+                         
+                         int paramCountUpdateVal = 1;
+		                 ArrayList alPreparedStmtDTOUpdateVal = new ArrayList();
+                         PreparedStmtDTO objPreparedStmtDTOUpdateVal= new PreparedStmtDTO();
+                         
+                         StringBuffer sBufferUpdateVal = new StringBuffer("UPDATE LEA_PROP_DTL SET ");
+                         
+                         
+                         
+                         sBufferUpdateVal.append(" LPD_VALUATION2 = ?");
+                         objPreparedStmtDTOUpdateVal = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateVal.setTypeAt(paramCountUpdateVal++);
+                         objPreparedStmtDTOUpdateVal.setType(1);
+                         objPreparedStmtDTOUpdateVal.setStringValue(propertyValAmt);    //1
+                         alPreparedStmtDTOUpdateVal.add(objPreparedStmtDTOUpdateVal);
+                         
+                         sBufferUpdateVal.append(" WHERE APP_ID_C = ?");
+                         objPreparedStmtDTOUpdateVal = new PreparedStmtDTO();
+                         objPreparedStmtDTOUpdateVal.setTypeAt(paramCountUpdateVal++);//19
+                         objPreparedStmtDTOUpdateVal.setType(1);
+                         objPreparedStmtDTOUpdateVal.setStringValue(appID);
+                         alPreparedStmtDTOUpdateVal.add(objPreparedStmtDTOUpdateVal);
+                         
+                         
+                         
+                         
+                         
+                         logger.debug("LEA_PROPERTY_DTL query-->>"+sBufferProp.toString());
+                         logger.debug("LEA_CONSTRUCTION_DTL query-->>"+sBufferCons.toString());
+                         logger.debug("LEA_PROP_DTL query-->>"+sBufferPropDtl.toString());
+                         logger.debug("LEA_PROPERTY_DTL UPDATE query-->>"+sBufferUpdateProp.toString());
+                         logger.debug("LEA_CONSTRUCTION_DTL UPDATE query-->>"+sBufferUpdateCons.toString());
+                         logger.debug("LEA_PROP_DTL query-->>"+sBufferUpdatePropDtl.toString());
+                         logger.debug("LEA_PROP_DTL valuation query-->>"+sBufferUpdateVal.toString());
+                         
+                         PasModuleDTO pasModulePrio1=null;
+                         if(alPasRec.size()!=0)
+                         {
+                             for(int i=0;i<alPasRec.size();i++)              
+                             {
+                                      pasModulePrio1=(PasModuleDTO)alPasRec.get(i);
+                                     if(pasModulePrio1.getTxtPriority().equalsIgnoreCase("1"))
+                                     {
+                                        logger.debug("Priority 1 is selected");
+                                         if(propCount==0)
+                                         {
+                                             logger.debug("Inside insert property details if condition");
+                                             updatePropertyDetail = OracleDAOFactory.executePreparedUpdate(sBufferProp.toString(), alPreparedStmtDTOProp);
+                                             logger.debug("property details inserted: "+updatePropertyDetail);
+                                         }
+                                         else
+                                         {
+                                            logger.debug("Inside update property details else condition");
+                                            recordUpdatedProp = OracleDAOFactory.executePreparedUpdate(sBufferUpdateProp.toString(), alPreparedStmtUPDTOUpdateProp);
+                                            logger.debug("Property details updated: "+recordUpdatedProp);
+                                         }
+                                         if(conCount==0)
+                                         {
+                                            logger.debug("Inside construction detail if condition");
+                                            updateConstructionDetail = OracleDAOFactory.executePreparedUpdate(sBufferCons.toString(), alPreparedStmtDTOCon);
+                                            logger.debug("construction details inserted: "+updateConstructionDetail);
+                                         }
+                                         else
+                                         {
+                                                logger.debug("Inside update construction details else condition");
+                                                recordUpdateCons=OracleDAOFactory.executePreparedUpdate(sBufferUpdateCons.toString(), alPreparedStmtDTOConsUpdate);
+                                                logger.debug("Construction details updated: "+recordUpdateCons);
+                                         }
+                                         if(proCount==0)
+                                         {
+                                            logger.debug("Inside PROP detail if condition");
+                                            updatePropDetail = OracleDAOFactory.executePreparedUpdate(sBufferPropDtl.toString(), alPreparedStmtDTOProDtl);
+                                            logger.debug("construction details updated: "+updatePropDetail);
+                                         }
+                                         else
+                                         {
+                                            logger.debug("Inside update prop details else condition");
+                                            recordUpdatePro = OracleDAOFactory.executePreparedUpdate(sBufferUpdatePropDtl.toString(), alPreparedStmtDTOUpdateProDtl);
+                                            logger.debug("Prop details updated: "+recordUpdatePro);
+                                         }
+                                         finalUpdateCheck=finalUpdateCheck+1;
+                                     }
+                                     else
+                                     {
+                                         logger.debug("Priority 2 is selected");   
+                                         recordUpdateVal = OracleDAOFactory.executePreparedUpdate(sBufferUpdateVal.toString(), alPreparedStmtDTOUpdateVal);
+                                         logger.debug("recordUpdateVal after updating valuation: "+recordUpdateVal);
+                                         finalUpdateCheck=finalUpdateCheck+1;
+                                     }
+                             }                     
+                         }
+                        
+                         logger.debug("Final update checj value: "+finalUpdateCheck);
+                        
+                         //recordUpdateVal
+                }
+                
+            } catch(SQLException se)
+        {
+            se.printStackTrace();
+            logger.debug("Inside sql exception: "+se);
+            throw se;
+        }
+        catch(NamingException se)
+        {
+            se.printStackTrace();
+            logger.debug("Naming exception: "+se);
+            throw new SQLException();
+        }
+        catch(Exception se)
+        {
+            se.printStackTrace();
+            logger.debug("general exception: "+se);
+            throw new SQLException();
+        }
+         return finalUpdateCheck;   
+    }
+    //added by shilpa for Builder payment end
+    private ArrayList selectPasValuationDetails(String applicationNo) throws SQLException, NamingException, Exception
+    {
+            logger.debug("Inside selectPasValuationDetails method of dao");
+            logger.debug("applicationNo: "+applicationNo);
+            ArrayList alPasValDet=new ArrayList();
+            PasModuleDTO pasValuationDTO=new PasModuleDTO();
+            try
+            {
+                Connection con1=OracleDAOFactory.getConnection();
+                //CallableStatement stmt1 = con1.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_PAS_VALUATION(?,?); END;");
+                CallableStatement stmt1 = con1.prepareCall("BEGIN PKG_TECHFI_APS.STP_APS_PAS_VALUATION(?); END;");
+                stmt1.setString(1, applicationNo);
+                //stmt1.registerOutParameter(2, OracleTypes.CURSOR); //REF CURSOR
+                stmt1.execute();
+                //ResultSet rs1 = (ResultSet)stmt1.getObject(2);
+                
+                ArrayList alLASDetails=new ArrayList();
+                ArrayList alPreparedStmtDTOLasDet = new ArrayList();
+                PreparedStmtDTO objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+                StringBuffer sBufferLASDetails=new StringBuffer();
+                int paramCountLasDet=1;
+                DAOCachedRowSet crsLasDet=null;
+                
+                sBufferLASDetails.append("SELECT APPLICATION_NO,STATUS, CREATED_ON, CHANNEL_ID, TOTAL_VALUE, REQUEST_ID ");
+                sBufferLASDetails.append(" FROM ATL_APS_PAS_VALUATION WHERE APPLICATION_NO=?");
+                
+                
+                objPreparedStmtDTOLasDet = new PreparedStmtDTO();
+                objPreparedStmtDTOLasDet.setTypeAt(paramCountLasDet++);
+        		objPreparedStmtDTOLasDet.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+        		objPreparedStmtDTOLasDet.setStringValue(applicationNo);
+        		alPreparedStmtDTOLasDet.add(objPreparedStmtDTOLasDet);
+                objPreparedStmtDTOLasDet=null;
+                
+                crsLasDet = OracleDAOFactory.executePreparedQuery(sBufferLASDetails.toString(),alPreparedStmtDTOLasDet);
+                
+                
+                ArrayList alPreparedStmtDTOLasDelete = new ArrayList();
+                PreparedStmtDTO objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+                StringBuffer sBufferLASDelete=new StringBuffer();
+                int paramCountLasDelete=1;
+                DAOCachedRowSet crsLasDelete=null;
+
+                sBufferLASDelete.append("DELETE FROM ATL_APS_PAS_VALUATION WHERE APPLICATION_NO=?");
+
+                objPreparedStmtDTOLasDelete = new PreparedStmtDTO();
+                objPreparedStmtDTOLasDelete.setTypeAt(paramCountLasDelete++);
+                objPreparedStmtDTOLasDelete.setType(PreparedStmtDTO.DATA_TYPE_STRING);
+                objPreparedStmtDTOLasDelete.setStringValue(applicationNo);
+                alPreparedStmtDTOLasDelete.add(objPreparedStmtDTOLasDelete);
+                objPreparedStmtDTOLasDet=null;            
+                            
+                
+                logger.debug("After fetching data from result set");
+                logger.debug("rs value: "+crsLasDet);
+                while (crsLasDet.next())
+                {
+                    logger.debug("inside while loop");
+                    pasValuationDTO=new PasModuleDTO();
+                    pasValuationDTO.setAppFormNo(crsLasDet.getString("APPLICATION_NO"));
+                    logger.debug("app no : "+pasValuationDTO.getAppFormNo());
+                    pasValuationDTO.setPasLasStatus(crsLasDet.getString("STATUS"));
+                    logger.debug("Pas las status: "+pasValuationDTO.getPasLasStatus());
+                    pasValuationDTO.setStatusDateTime(crsLasDet.getString("CREATED_ON"));
+                    logger.debug("Status date time: "+pasValuationDTO.getStatusDateTime());
+                    //String channelID=rs1.getString("CHANNEL_ID");
+                    pasValuationDTO.setUserId(crsLasDet.getString("CHANNEL_ID"));
+                    logger.debug("User iD: "+pasValuationDTO.getUserId());
+                    //logger.debug("channel id: "+channelID);
+                    pasValuationDTO.setPropertyValuationAmount(crsLasDet.getString("TOTAL_VALUE"));
+                    logger.debug("Prop vakl amt: "+pasValuationDTO.getPropertyValuationAmount());
+                    pasValuationDTO.setPasValReq(crsLasDet.getString("REQUEST_ID"));
+                    logger.debug("Request ID: "+pasValuationDTO.getPasValReq());
+                    alPasValDet.add(pasValuationDTO);
+                }
+                int lasDelete = OracleDAOFactory.executePreparedUpdate(sBufferLASDelete.toString(),alPreparedStmtDTOLasDelete);
+                logger.debug("lasDelete check..6: "+lasDelete);
+            }
+            catch(SQLException se)
+            {
+                se.printStackTrace();
+                logger.debug("Inside sql exception: "+se);
+                throw se;
+            }
+            catch(NamingException se)
+            {
+                se.printStackTrace();
+                logger.debug("Naming exception: "+se);
+                throw new SQLException();
+            }
+            catch(Exception se)
+            {
+                se.printStackTrace();
+                logger.debug("general exception: "+se);
+                throw new SQLException();
+            }
+            logger.debug("alPasValDet: "+alPasValDet);
+            return alPasValDet;
+    } 
+    
+    
+}

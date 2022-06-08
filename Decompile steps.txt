@@ -1,0 +1,22 @@
+EJb Decomplie:
+
+1. Create Folder ICICIEJB
+2. Paste com folder inside it.
+3. put jad paralell to ICICIEJB.
+4. run follwoing commond on cmd.
+5. reach to that path where all ear, jad and folder are extracted.
+
+	jad -o -r ICICIEJB  ICICIEJB/**/*.class
+
+
+Wb Decomplie:
+
+1. Create Folder ICICIWeb
+2. Paste all folders inside it of ICICIWeb.
+3. Put com folder just inside ICICIWeb.
+4. put jad parallel to ICICIWeb.
+5. run following commond on cmd.
+6. reach to that path where all ear, jad and folder are extracted.
+
+
+	jad -o -r ICICIWeb  ICICIWeb/**/*.class

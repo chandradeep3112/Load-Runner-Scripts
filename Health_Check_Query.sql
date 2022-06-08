@@ -1,0 +1,2 @@
+SELECT app_id_c , COUNT(*) FROM LOS_APP_ASSETS_KCC
+GROUP BY app_id_c HAVING  COUNT(*) > 1

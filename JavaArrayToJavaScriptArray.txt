@@ -1,0 +1,27 @@
+<html>
+<bean:define id="linkedLANNumber" name="propertyDetailAF" property="alLinkedLANNumber"  type="java.util.ArrayList"/> 
+<bean:define id="totalGrossAmount" name="propertyDetailAF" property="hidGrossAmount"  type="java.util.ArrayList"/> 
+<bean:define id="totalCumulativeAmount" name="propertyDetailAF" property="hidTotalCummAmt"  type="java.util.ArrayList"/> 
+ 
+<script>
+
+var lanNumberArray=new Array();
+<% for (int m=0; m<linkedLANNumber.size(); m++) { %>
+lanNumberArray[<%= m %>] = "<%= linkedLANNumber.get(m) %>"; 
+<% } %>
+
+var totalGrossAmountArray=new Array();
+<% for (int m=0; m<totalGrossAmount.size(); m++) { %>
+totalGrossAmountArray[<%= m %>] = "<%= totalGrossAmount.get(m) %>"; 
+<% } %>
+
+var totalCumulativeAmountArray=new Array();
+<% for (int m=0; m<totalCumulativeAmount.size(); m++) { %>
+totalCumulativeAmountArray[<%= m %>] = "<%= totalCumulativeAmount.get(m) %>"; 
+<% } %>
+
+</script>
+<body>
+	Code to convert Java Array to Javascript Array
+</body>
+</html>
